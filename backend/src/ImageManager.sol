@@ -34,6 +34,9 @@ contract ImageManager is Ownable, ReentrancyGuard {
     mapping(address token => address priceFeed) priceFeeds;
     address[] allowedTokens;
 
+    mapping(address image => uint256 priceInUsd) imagePrices;
+    mapping (address image => uint256 printId) printIds;
+
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
 
@@ -76,11 +79,14 @@ contract ImageManager is Ownable, ReentrancyGuard {
         string memory symbol,
         uint256 _maxSupply,
         string memory baseURIString,
-        uint256 _priceInUsd
+        uint256 _priceInUsd,
+        uint256 _printId
     ) external onlyOwner returns (address) {
-        Image image = new Image(address(this), name, symbol, _maxSupply, baseURIString, _priceInUsd);
+        Image image = new Image(address(this), name, symbol, _maxSupply, baseURIString);
         images.push(image);
         isImage[address(image)] = true;
+        imagePrices[address(image)] = _priceInUsd;
+        printIds[address(image)] = _printId;
         emit imageCreated(address(image));
         return address(image);
     }
@@ -97,7 +103,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
             revert ImageManager__MaxSupplyReached(imageAddress);
         }
 
-        uint256 price = image.getPriceInUsd();
+        uint256 price = imagePrices[imageAddress];
         uint256 amount = _getTokenAmountFromUsd(token, price);
         bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);
         if (!success) {
@@ -112,9 +118,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         if (msg.sender != image.ownerOf(tokenId)) {
             revert ImageManager__NotTokenOwner(imageAddress);
         }
-        // TODO: Print image
-        // TODO: burn NFT
-        // TODO: mint certificate + return it
+        // TODO: Handle Printer
     }
 
     function withdrawToken(address _token, address _to) external onlyOwner {
@@ -122,6 +126,10 @@ contract ImageManager is Ownable, ReentrancyGuard {
         if (!success) {
             revert ImageManager__TransferFailed(_token, _to);
         }
+    }
+
+    function editPrintId(address imageAddress, uint256 _printId) external onlyOwner {
+        printIds[imageAddress] = _printId;
     }
 
     /* ========== Public functions ========== */

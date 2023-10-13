@@ -18,7 +18,6 @@ contract Image is ERC721, ERC721Burnable, Ownable {
     uint256 private _nextTokenId;
     uint256 private maxSupply;
     string private baseURI;
-    uint256 private priceInUsd;
 
     /* ========== Events ========== */
     /* ========== Modifiers ========== */
@@ -30,13 +29,11 @@ contract Image is ERC721, ERC721Burnable, Ownable {
         string memory name,
         string memory symbol,
         uint256 _maxSupply,
-        string memory baseURIString,
-        uint256 _priceInUsd
+        string memory baseURIString
     ) ERC721(name, symbol) Ownable() {
         transferOwnership(initialOwner);
         maxSupply = _maxSupply;
         baseURI = baseURIString;
-        priceInUsd = _priceInUsd;
     }
 
     /* ========== Receive ========== */
@@ -62,9 +59,5 @@ contract Image is ERC721, ERC721Burnable, Ownable {
 
     function getNextId() external view returns (uint256) {
         return _nextTokenId;
-    }
-
-    function getPriceInUsd() external view returns (uint256) {
-        return priceInUsd;
     }
 }
