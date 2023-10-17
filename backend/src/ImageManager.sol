@@ -31,6 +31,8 @@ contract ImageManager is Ownable, ReentrancyGuard {
     Image[] private images;
     mapping(address image => bool) isImage;
 
+    Printer printer;
+
     mapping(address token => address priceFeed) priceFeeds;
     address[] allowedTokens;
 
@@ -69,20 +71,21 @@ contract ImageManager is Ownable, ReentrancyGuard {
             priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
             allowedTokens.push(tokenAddresses[i]);
         }
+        printer = new Printer();
     }
 
     /* ========== Receive ========== */
     /* ========== Fallback ========== */
     /* ========== External functions ========== */
     function createImage(
-        string memory name,
-        string memory symbol,
+        string memory _name,
+        string memory _symbol,
         uint256 _maxSupply,
         string memory baseURIString,
         uint256 _priceInUsd,
         uint256 _printId
     ) external onlyOwner returns (address) {
-        Image image = new Image(address(this), name, symbol, _maxSupply, baseURIString);
+        Image image = new Image(address(this), _name, _symbol, _maxSupply, baseURIString);
         images.push(image);
         isImage[address(image)] = true;
         imagePrices[address(image)] = _priceInUsd;
@@ -113,12 +116,13 @@ contract ImageManager is Ownable, ReentrancyGuard {
         image.safeMint(to);
     }
 
-    function print(address imageAddress, uint256 tokenId) external nonReentrant onlyRegisteredImage(imageAddress) {
+    function lock(address imageAddress, uint256 tokenId) external nonReentrant onlyRegisteredImage(imageAddress) {
         Image image = Image(imageAddress);
         if (msg.sender != image.ownerOf(tokenId)) {
             revert ImageManager__NotTokenOwner(imageAddress);
         }
-        // TODO: Handle Printer
+        // TODO: Handle Printer - printID, imageAddress, tokenId
+        printer.lock(imageAddress, tokenId,  printIds[imageAddress], msg.sender);
     }
 
     function withdrawToken(address _token, address _to) external onlyOwner {
@@ -134,6 +138,15 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     /* ========== Public functions ========== */
     /* ========== Internal functions ========== */
+
+    function lockImage(address imageAddress) internal onlyRegisteredImage(imageAddress) {
+        
+    }
+
+    function unlockImage(address imageAddress) internal onlyRegisteredImage(imageAddress) {
+        
+    }
+
     /* ========== Private functions ========== */
     /* ========== Internal & private view / pure functions ========== */
 
