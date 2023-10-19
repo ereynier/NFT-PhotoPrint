@@ -81,11 +81,11 @@ contract Printer is Ownable {
         }
     }
 
-    function getCertificate(address user, address certificate) external onlyOwner tokenLocked(user) {
+    function mintCertificate(address user, address certificate) external onlyOwner tokenLocked(user) {
         if (nftByUser[user].printed == false) {
             revert Printer__NFTNotPrinted(user);
         }
-        mintCertificate(user, certificate);
+        _mintCertificate(user, certificate);
     }
 
     function setPrinted(address user) external onlyAdmin tokenLocked(user) {
@@ -108,7 +108,7 @@ contract Printer is Ownable {
         delete nftByUser[user];
     }
 
-    function mintCertificate(address user, address certificate) internal {
+    function _mintCertificate(address user, address certificate) internal {
         // mint certificate with nftByUser[user] specs to user
         Certificate(certificate).safeMint(user, nftByUser[user].imageId);
         // burn nftByUser[user]

@@ -117,6 +117,10 @@ contract ImageManager is Ownable, ReentrancyGuard {
         printer.unlock(msg.sender);
     }
 
+    function mintCertificate(address user, address certificate) external nonReentrant {
+        printer.mintCertificate(user, certificate);
+    }
+
     // onlyOwner functions
 
     function createImage(
