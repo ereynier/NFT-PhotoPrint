@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 /* ========== Imports ========== */
 
 import {Image} from "./Image.sol";
+import {Certificate} from "./Certificate.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Printer} from "./Printer.sol";
@@ -30,6 +31,10 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     Image[] private images;
     mapping(address image => bool) isImage;
+
+    Certificate[] private certificates;
+    mapping(address image => address certificate) imageToCertificate;
+    mapping(address certificate => address image) certificateToImage;
 
     Printer immutable printer;
 
@@ -123,7 +128,11 @@ contract ImageManager is Ownable, ReentrancyGuard {
         uint256 _printId
     ) external onlyOwner returns (address) {
         Image image = new Image(address(this), _name, _symbol, _maxSupply, baseURIString);
+        Certificate certificate = new Certificate(address(printer), string.concat(_name, " - Certificate"), string.concat(_symbol, "_C"), _maxSupply, baseURIString);
         images.push(image);
+        certificates.push(certificate);
+        imageToCertificate[address(image)] = address(certificate);
+        certificateToImage[address(certificate)] = address(image);
         isImage[address(image)] = true;
         imagePrices[address(image)] = _priceInUsd;
         printIds[address(image)] = _printId;
