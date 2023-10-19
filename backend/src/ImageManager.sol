@@ -18,7 +18,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     error ImageManager__ImageNotRegistered(address imageAddress);
     error ImageManager__MaxSupplyReached(address imageAddress);
-    error ImageManager__NotTokenOwner(address imageAddress);
+    error ImageManager__NotTokenOwner(address imageAddress, uint256 tokenId);
     error ImageManager__TokenNotAllowed(address tokenAddress);
     error ImageManager__TransferFailed(address tokenAddress, address to);
 
@@ -31,13 +31,13 @@ contract ImageManager is Ownable, ReentrancyGuard {
     Image[] private images;
     mapping(address image => bool) isImage;
 
-    Printer printer;
+    Printer immutable printer;
 
     mapping(address token => address priceFeed) priceFeeds;
     address[] allowedTokens;
 
     mapping(address image => uint256 priceInUsd) imagePrices;
-    mapping (address image => uint256 printId) printIds;
+    mapping(address image => uint256 printId) printIds;
 
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
     uint256 private constant PRECISION = 1e18;
@@ -65,7 +65,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     /* ========== FUNCTIONS ========== */
 
     /* ========== constructor ========== */
-    constructor(address initialOwner, address[] memory tokenAddresses, address[] memory priceFeedAddresses) Ownable() {
+    constructor(address initialOwner, address[] memory tokenAddresses, address[] memory priceFeedAddresses) {
         transferOwnership(initialOwner);
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
@@ -77,22 +77,6 @@ contract ImageManager is Ownable, ReentrancyGuard {
     /* ========== Receive ========== */
     /* ========== Fallback ========== */
     /* ========== External functions ========== */
-    function createImage(
-        string memory _name,
-        string memory _symbol,
-        uint256 _maxSupply,
-        string memory baseURIString,
-        uint256 _priceInUsd,
-        uint256 _printId
-    ) external onlyOwner returns (address) {
-        Image image = new Image(address(this), _name, _symbol, _maxSupply, baseURIString);
-        images.push(image);
-        isImage[address(image)] = true;
-        imagePrices[address(image)] = _priceInUsd;
-        printIds[address(image)] = _printId;
-        emit imageCreated(address(image));
-        return address(image);
-    }
 
     function mint(address imageAddress, address to, address token)
         external
@@ -112,17 +96,39 @@ contract ImageManager is Ownable, ReentrancyGuard {
         if (!success) {
             revert ImageManager__TransferFailed(token, address(this));
         }
-        
+
         image.safeMint(to);
     }
 
-    function lock(address imageAddress, uint256 tokenId) external nonReentrant onlyRegisteredImage(imageAddress) {
+    function lockImage(address imageAddress, uint256 tokenId) external nonReentrant onlyRegisteredImage(imageAddress) {
         Image image = Image(imageAddress);
         if (msg.sender != image.ownerOf(tokenId)) {
-            revert ImageManager__NotTokenOwner(imageAddress);
+            revert ImageManager__NotTokenOwner(imageAddress, tokenId);
         }
-        // TODO: Handle Printer - printID, imageAddress, tokenId
-        printer.lock(imageAddress, tokenId,  printIds[imageAddress], msg.sender);
+        printer.lock(imageAddress, tokenId, printIds[imageAddress], msg.sender);
+    }
+
+    function unlockImage() external nonReentrant {
+        printer.unlock(msg.sender);
+    }
+
+    // onlyOwner functions
+
+    function createImage(
+        string memory _name,
+        string memory _symbol,
+        uint256 _maxSupply,
+        string memory baseURIString,
+        uint256 _priceInUsd,
+        uint256 _printId
+    ) external onlyOwner returns (address) {
+        Image image = new Image(address(this), _name, _symbol, _maxSupply, baseURIString);
+        images.push(image);
+        isImage[address(image)] = true;
+        imagePrices[address(image)] = _priceInUsd;
+        printIds[address(image)] = _printId;
+        emit imageCreated(address(image));
+        return address(image);
     }
 
     function withdrawToken(address _token, address _to) external onlyOwner {
@@ -136,16 +142,12 @@ contract ImageManager is Ownable, ReentrancyGuard {
         printIds[imageAddress] = _printId;
     }
 
+    function setAdmin(address _admin) external onlyOwner {
+        printer.setAdmin(_admin);
+    }
+
     /* ========== Public functions ========== */
     /* ========== Internal functions ========== */
-
-    function lockImage(address imageAddress) internal onlyRegisteredImage(imageAddress) {
-        
-    }
-
-    function unlockImage(address imageAddress) internal onlyRegisteredImage(imageAddress) {
-        
-    }
 
     /* ========== Private functions ========== */
     /* ========== Internal & private view / pure functions ========== */
