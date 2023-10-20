@@ -19,6 +19,11 @@ contract Printer is Ownable {
     error Printer__NFTNotPrinted(address user);
     error Printer__NoTokenLocked(address user);
     error Printer__NotAdmin(address user);
+    error Printer__CommandAlreadyConfirmed(address user);
+    error Printer__NFTCantBeUnlocked(address user);
+    error Printer__NFTIsLocked(address user);
+    error Printer__CommandIsNotSet(address user);
+    error Printer__CommandIsPrinted(address user);
 
     /* ========== Types ========== */
 
@@ -29,6 +34,8 @@ contract Printer is Ownable {
         uint256 imageId;
         uint256 printId;
         bool printed;
+        uint256 timestampLock;
+        bytes32 cryptedOrderId;
         address owner;
     }
 
@@ -36,7 +43,12 @@ contract Printer is Ownable {
 
     address private admin;
 
+    uint256 private constant LOCKING_TIME = 7 days;
+
     /* ========== Events ========== */
+
+    event ConfirmOrder(address user, bytes32 cryptedOrderId);
+
     /* ========== Modifiers ========== */
 
     modifier onlyAdmin() {
@@ -70,15 +82,53 @@ contract Printer is Ownable {
             revert Printer__NotApproved(imageAddress, imageId);
         }
         image.transferFrom(owner, address(this), imageId);
-        NFT memory nft =
-            NFT({imageAddress: imageAddress, imageId: imageId, printId: printId, printed: false, owner: owner});
+        NFT memory nft = NFT({
+            imageAddress: imageAddress,
+            imageId: imageId,
+            printId: printId,
+            printed: false,
+            timestampLock: 0,
+            cryptedOrderId: "",
+            owner: owner
+        });
         nftByUser[owner] = nft;
     }
 
     function unlock(address user) external onlyOwner tokenLocked(user) {
-        if (nftByUser[user].printed == false) {
-            withdraw(user);
+        if (
+            nftByUser[user].printed == false || nftByUser[user].timestampLock != 0
+                || nftByUser[user].cryptedOrderId != ""
+        ) {
+            revert Printer__NFTCantBeUnlocked(user);
         }
+        withdraw(user);
+    }
+
+    function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) {
+        if (nftByUser[user].timestampLock != 0) {
+            revert Printer__CommandAlreadyConfirmed(user);
+        }
+        if (nftByUser[user].printed == true) {
+            revert Printer__CommandIsPrinted(user);
+        }
+
+        nftByUser[user].timestampLock = block.timestamp;
+        nftByUser[user].cryptedOrderId = cryptedOrderId;
+        emit ConfirmOrder(user, cryptedOrderId);
+    }
+
+    function clearOrderId(address user) external onlyOwner tokenLocked(user) {
+        if (block.timestamp - nftByUser[user].timestampLock < LOCKING_TIME) {
+            revert Printer__NFTIsLocked(user);
+        }
+        if (nftByUser[user].timestampLock == 0) {
+            revert Printer__CommandIsNotSet(user);
+        }
+        if (nftByUser[user].printed == true) {
+            revert Printer__CommandIsPrinted(user);
+        }
+        nftByUser[user].timestampLock = 0;
+        nftByUser[user].cryptedOrderId = "";
     }
 
     function mintCertificate(address user, address certificate) external onlyOwner tokenLocked(user) {
@@ -124,8 +174,28 @@ contract Printer is Ownable {
     function getImageLockedByUser(address user)
         public
         view
-        returns (address imageAddress, uint256 imageId, uint256 printId, bool printed, address owner)
+        returns (
+            address imageAddress,
+            uint256 imageId,
+            uint256 printId,
+            bool printed,
+            uint256 timestampLock,
+            bytes32 cryptedOrderId,
+            address owner
+        )
     {
-        return (nftByUser[user].imageAddress, nftByUser[user].imageId, nftByUser[user].printId, nftByUser[user].printed, nftByUser[user].owner);
+        return (
+            nftByUser[user].imageAddress,
+            nftByUser[user].imageId,
+            nftByUser[user].printId,
+            nftByUser[user].printed,
+            nftByUser[user].timestampLock,
+            nftByUser[user].cryptedOrderId,
+            nftByUser[user].owner
+        );
+    }
+
+    function getLockingTime() external pure returns (uint256) {
+        return LOCKING_TIME;
     }
 }

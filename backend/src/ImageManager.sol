@@ -29,17 +29,17 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     /* ========== State variables ========== */
 
-    Image[] private images;
+    address[] private images;
     mapping(address image => bool) isImage;
 
-    Certificate[] private certificates;
+    address[] private certificates;
     mapping(address image => address certificate) imageToCertificate;
     mapping(address certificate => address image) certificateToImage;
 
     Printer immutable printer;
 
     mapping(address token => address priceFeed) priceFeeds;
-    address[] allowedTokens;
+    address[] private allowedTokens;
 
     mapping(address image => uint256 priceInUsd) imagePrices;
     mapping(address image => uint256 printId) printIds;
@@ -117,6 +117,14 @@ contract ImageManager is Ownable, ReentrancyGuard {
         printer.unlock(msg.sender);
     }
 
+    function confirmOrder(bytes32 cryptedOrderId) external nonReentrant {
+        printer.confirmOrder(msg.sender, cryptedOrderId);
+    }
+
+    function clearOrderId() external nonReentrant {
+        printer.clearOrderId(msg.sender);
+    }
+
     function mintCertificate(address user, address certificate) external nonReentrant {
         printer.mintCertificate(user, certificate);
     }
@@ -133,8 +141,8 @@ contract ImageManager is Ownable, ReentrancyGuard {
     ) external onlyOwner returns (address) {
         Image image = new Image(address(this), _name, _symbol, _maxSupply, baseURIString);
         Certificate certificate = new Certificate(address(printer), string.concat(_name, " - Certificate"), string.concat(_symbol, "_C"), _maxSupply, baseURIString);
-        images.push(image);
-        certificates.push(certificate);
+        images.push(address(image));
+        certificates.push(address(certificate));
         imageToCertificate[address(image)] = address(certificate);
         certificateToImage[address(certificate)] = address(image);
         isImage[address(image)] = true;
@@ -172,4 +180,32 @@ contract ImageManager is Ownable, ReentrancyGuard {
     }
 
     /* ========== External & public view / pure functions ========== */
+
+    function getPrinterAddress() external view returns (address) {
+        return address(printer);
+    }
+
+    function getImagesAddresses() external view returns (address[] memory) {
+        return address[](images);
+    }
+
+    function getCertificateByImage(address imageAddress) external view returns (address) {
+        return imageToCertificate[imageAddress];
+    }
+
+    function getImageByCertificate(address certificateAddress) external view returns (address) {
+        return certificateToImage[certificateAddress];
+    }
+
+    function getImagePrice(address imageAddress) external view returns (uint256) {
+        return imagePrices[imageAddress];
+    }
+
+    function getAllowedTokens() external view returns (address[] memory) {
+        return allowedTokens;
+    }
+
+    function getIsImage(address imageAddress) external view returns (bool) {
+        return isImage[imageAddress];
+    }
 }
