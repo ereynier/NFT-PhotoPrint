@@ -96,12 +96,12 @@ contract Printer is Ownable {
 
     function unlock(address user) external onlyOwner tokenLocked(user) {
         if (
-            nftByUser[user].printed == false || nftByUser[user].timestampLock != 0
+            nftByUser[user].printed == true || nftByUser[user].timestampLock != 0
                 || nftByUser[user].cryptedOrderId != ""
         ) {
             revert Printer__NFTCantBeUnlocked(user);
         }
-        withdraw(user);
+        _withdraw(user);
     }
 
     function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) {
@@ -151,7 +151,7 @@ contract Printer is Ownable {
 
     /* ========== Public functions ========== */
     /* ========== Internal functions ========== */
-    function withdraw(address user) internal {
+    function _withdraw(address user) internal {
         NFT memory nft = nftByUser[user];
         Image image = Image(nft.imageAddress);
         image.transferFrom(address(this), user, nft.imageId);
@@ -184,14 +184,15 @@ contract Printer is Ownable {
             address owner
         )
     {
+        NFT memory nft = nftByUser[user];
         return (
-            nftByUser[user].imageAddress,
-            nftByUser[user].imageId,
-            nftByUser[user].printId,
-            nftByUser[user].printed,
-            nftByUser[user].timestampLock,
-            nftByUser[user].cryptedOrderId,
-            nftByUser[user].owner
+            nft.imageAddress,
+            nft.imageId,
+            nft.printId,
+            nft.printed,
+            nft.timestampLock,
+            nft.cryptedOrderId,
+            nft.owner
         );
     }
 

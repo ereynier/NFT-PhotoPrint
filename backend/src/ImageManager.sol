@@ -22,6 +22,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     error ImageManager__NotTokenOwner(address imageAddress, uint256 tokenId);
     error ImageManager__TokenNotAllowed(address tokenAddress);
     error ImageManager__TransferFailed(address tokenAddress, address to);
+    error ImageManager__NoTokenLocked(address user);
 
     /* ========== Types ========== */
 
@@ -125,7 +126,12 @@ contract ImageManager is Ownable, ReentrancyGuard {
         printer.clearOrderId(msg.sender);
     }
 
-    function mintCertificate(address user, address certificate) external nonReentrant {
+    function mintCertificate(address user) external nonReentrant {
+        (address imageAddress,,,,,,) = printer.getImageLockedByUser(user);
+        if (imageAddress == address(0)) {
+            revert ImageManager__NoTokenLocked(user);
+        }
+        address certificate = imageToCertificate[imageAddress];
         printer.mintCertificate(user, certificate);
     }
 
@@ -135,12 +141,12 @@ contract ImageManager is Ownable, ReentrancyGuard {
         string memory _name,
         string memory _symbol,
         uint256 _maxSupply,
-        string memory baseURIString,
+        string memory _baseURIString,
         uint256 _priceInUsd,
         uint256 _printId
     ) external onlyOwner returns (address) {
-        Image image = new Image(address(this), _name, _symbol, _maxSupply, baseURIString);
-        Certificate certificate = new Certificate(address(printer), string.concat(_name, " - Certificate"), string.concat(_symbol, "_C"), _maxSupply, baseURIString);
+        Image image = new Image(address(this), _name, _symbol, _maxSupply, _baseURIString);
+        Certificate certificate = new Certificate(address(printer), string.concat(_name, " - Certificate"), string.concat(_symbol, "_C"), _maxSupply, _baseURIString);
         images.push(address(image));
         certificates.push(address(certificate));
         imageToCertificate[address(image)] = address(certificate);
@@ -186,7 +192,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     }
 
     function getImagesAddresses() external view returns (address[] memory) {
-        return address[](images);
+        return images;
     }
 
     function getCertificateByImage(address imageAddress) external view returns (address) {
