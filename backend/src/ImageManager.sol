@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.18;
+pragma solidity 0.8.20;
 /* ========== Imports ========== */
 
 import {Image} from "./Image.sol";
@@ -146,7 +146,8 @@ contract ImageManager is Ownable, ReentrancyGuard {
         uint256 _printId
     ) external onlyOwner returns (address) {
         Image image = new Image(address(this), _name, _symbol, _maxSupply, _baseURIString);
-        Certificate certificate = new Certificate(address(printer), string.concat(_name, " - Certificate"), string.concat(_symbol, "_C"), _maxSupply, _baseURIString);
+        Certificate certificate =
+        new Certificate(address(printer), string.concat(_name, " - Certificate"), string.concat(_symbol, "_C"), _maxSupply, _baseURIString);
         images.push(address(image));
         certificates.push(address(certificate));
         imageToCertificate[address(image)] = address(certificate);
@@ -171,6 +172,17 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     function setAdmin(address _admin) external onlyOwner {
         printer.setAdmin(_admin);
+    }
+
+    function updateTokensAllowed(address[] memory tokenAddresses, address[] memory priceFeedAddresses)
+        external
+        onlyOwner
+    {
+        delete allowedTokens;
+        for (uint256 i = 0; i < tokenAddresses.length; i++) {
+            priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
+            allowedTokens.push(tokenAddresses[i]);
+        }
     }
 
     /* ========== Public functions ========== */
