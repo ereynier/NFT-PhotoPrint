@@ -23,6 +23,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     error ImageManager__TokenNotAllowed(address tokenAddress);
     error ImageManager__TransferFailed(address tokenAddress, address to);
     error ImageManager__NoTokenLocked(address user);
+    error ImageManager__TokensLengthDontMatchPriceFeeds();
 
     /* ========== Types ========== */
 
@@ -72,6 +73,9 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     /* ========== constructor ========== */
     constructor(address initialOwner, address[] memory tokenAddresses, address[] memory priceFeedAddresses) {
+        if (tokenAddresses.length != priceFeedAddresses.length) {
+            revert ImageManager__TokensLengthDontMatchPriceFeeds();
+        }
         transferOwnership(initialOwner);
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             _priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
@@ -178,6 +182,9 @@ contract ImageManager is Ownable, ReentrancyGuard {
         external
         onlyOwner
     {
+        if (tokenAddresses.length != priceFeedAddresses.length) {
+            revert ImageManager__TokensLengthDontMatchPriceFeeds();
+        }
         delete _allowedTokens;
         for (uint256 i = 0; i < tokenAddresses.length; i++) {
             _priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
