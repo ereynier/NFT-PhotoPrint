@@ -10,5 +10,31 @@ contract ImageManagerTest is Test {
     
     }
 
+    /* ===== test function constructor  ===== */
+
+    /* ===== test function mint ===== */
+
+    /* ===== test function lockImage ===== */
+
+    /* ===== test function unlockImage ===== */
+
+    /* ===== test function confirmOrder ===== */
+
+    /* ===== test function clearOrderId ===== */
+
+    /* ===== test function mintCertificate ===== */
+
+    /* ===== test function createImage ===== */
+
+    /* ===== test function withdrawToken ===== */
+
+    /* ===== test function editPrintId ===== */
+
+    /* ===== test function setAdmin ===== */
+
+    /* ===== test updateTokensAllowed ===== */
+
+    /* ===== test public & external view / pure function ===== */
+
     
 }
