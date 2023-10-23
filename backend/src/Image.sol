@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.20;
+pragma solidity 0.8.18;
 
 /* ========== Imports ========== */
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
@@ -16,7 +16,7 @@ contract Image is ERC721, ERC721Burnable, Ownable {
 
     /* ========== State variables ========== */
     uint256 private _nextTokenId;
-    uint256 private maxSupply;
+    uint256 private immutable _maxSupply;
     string private baseURI;
 
     /* ========== Events ========== */
@@ -28,11 +28,11 @@ contract Image is ERC721, ERC721Burnable, Ownable {
         address initialOwner,
         string memory name,
         string memory symbol,
-        uint256 _maxSupply,
+        uint256 maxSupply,
         string memory baseURIString
     ) ERC721(name, symbol) Ownable() {
         transferOwnership(initialOwner);
-        maxSupply = _maxSupply;
+        _maxSupply = maxSupply;
         baseURI = baseURIString;
     }
 
@@ -42,7 +42,7 @@ contract Image is ERC721, ERC721Burnable, Ownable {
     /* ========== Public functions ========== */
 
     function safeMint(address to) public onlyOwner {
-        if (_nextTokenId >= maxSupply) {
+        if (_nextTokenId >= _maxSupply) {
             revert Image__MaxSupplyReached();
         }
         uint256 tokenId = _nextTokenId++;
@@ -54,7 +54,7 @@ contract Image is ERC721, ERC721Burnable, Ownable {
     /* ========== Internal & private view / pure functions ========== */
     /* ========== External & public view / pure functions ========== */
     function getMaxSupply() external view returns (uint256) {
-        return maxSupply;
+        return _maxSupply;
     }
 
     function getNextId() external view returns (uint256) {

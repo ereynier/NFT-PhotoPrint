@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.20;
+pragma solidity 0.8.18;
 
 import {Script} from "forge-std/Script.sol";
 import {ImageManager} from "../src/ImageManager.sol";
