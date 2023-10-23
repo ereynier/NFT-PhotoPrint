@@ -25,6 +25,15 @@ contract PrinterTest is Test {
         mockCertificate = new MockCertificate(address(printer));
     }
 
+    function mintAndLockInPrinter() public {
+        vm.prank(OWNER);
+        mockImage.safeMint(USER);
+        vm.prank(USER);
+        mockImage.approve(address(printer), 0);
+        vm.prank(OWNER);
+        printer.lock(address(mockImage), 0, 1, USER);
+    }
+
     /* ===== test function lock ===== */
 
     /* ===== test function unlock ===== */
@@ -35,9 +44,96 @@ contract PrinterTest is Test {
 
     /* ===== test function mintCertificate ===== */
 
+    function testMintCertificateRevertIfNotOwner() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        printer.mintCertificate(USER, address(mockCertificate));
+    }
+
+    function testMintCertificateRevertIfNoTokenLocked() public {
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NoTokenLocked.selector, USER));
+        printer.mintCertificate(USER, address(mockCertificate));
+    }
+
+    function testMintCertificateRevertIfTokenNotPrinted() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTNotPrinted.selector, USER));
+        printer.mintCertificate(USER, address(mockCertificate));
+    }
+
+    function testMintCertificateGood() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(ADMIN);
+        printer.setPrinted(USER);
+        vm.prank(OWNER);
+        printer.mintCertificate(USER, address(mockCertificate));
+        assertEq(mockCertificate.ownerOf(0), USER);
+        (address imageAddress, , , bool printed, , , ) = printer.getImageLockedByUser(USER);
+        assertEq(imageAddress, address(0));
+        assertEq(printed, false);
+    }
+
     /* ===== test function setPrinted ===== */
 
+    function testSetPrintedRevertIfNotAdmin() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.startPrank(USER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NotAdmin.selector, USER));
+        printer.setPrinted(USER);
+    }
+
+    function testSetPrintedRevertIfNoTokenLocked() public {
+        vm.prank(ADMIN);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NoTokenLocked.selector, USER));
+        printer.setPrinted(USER);
+    }
+
+    function testSetPrintedRevertIfAlreadyPrinted() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(ADMIN);
+        printer.setPrinted(USER);
+        vm.prank(ADMIN);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTAlreadyPrinted.selector, USER));
+        printer.setPrinted(USER);
+    }
+
+    function testSetPrintedRevertIfNotConfirmed() public {
+        mintAndLockInPrinter();
+        vm.prank(ADMIN);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__CommandIsNotSet.selector, USER));
+        printer.setPrinted(USER);
+    }
+
+    function testSetPrintedGood() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        (, , , bool printed, , , ) = printer.getImageLockedByUser(USER);
+        assertEq(printed, false);
+        vm.prank(ADMIN);
+        printer.setPrinted(USER);
+        (, , , printed, , , ) = printer.getImageLockedByUser(USER);
+        assertEq(printed, true);
+    }
+
     /* ===== test function setAdmin ===== */
+
+    function testSetAdmin() public {
+        assertEq(printer.getAdminAddress(), ADMIN);
+        vm.prank(OWNER);
+        printer.setAdmin(USER);
+        assertEq(printer.getAdminAddress(), USER);
+        vm.prank(OWNER);
+        printer.setAdmin(ADMIN);
+        assertEq(printer.getAdminAddress(), ADMIN);
+    }
 
     /* ===== test public & external view / pure function ===== */
 
@@ -62,12 +158,7 @@ contract PrinterTest is Test {
 
     function testGetImageLockerWithImageLocked() public {
         vm.warp(block.timestamp + 1 days);
-        vm.prank(OWNER);
-        mockImage.safeMint(USER);
-        vm.prank(USER);
-        mockImage.approve(address(printer), 0);
-        vm.prank(OWNER);
-        printer.lock(address(mockImage), 0, 1, USER);
+        mintAndLockInPrinter();
         (
             address imageAddress,
             uint256 imageId,

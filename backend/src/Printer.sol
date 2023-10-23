@@ -144,6 +144,9 @@ contract Printer is Ownable {
         if (_nftByUser[user].printed == true) {
             revert Printer__NFTAlreadyPrinted(user);
         }
+        if (_nftByUser[user].timestampLock == 0) {
+            revert Printer__CommandIsNotSet(user);
+        }
         _nftByUser[user].printed = true;
     }
 
