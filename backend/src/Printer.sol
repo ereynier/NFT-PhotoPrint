@@ -67,7 +67,9 @@ contract Printer is Ownable {
 
     /* ========== FUNCTIONS ========== */
     /* ========== constructor ========== */
-    constructor() {}
+    constructor(address initialOwner) {
+        transferOwnership(initialOwner);
+    }
 
     /* ========== Receive ========== */
     /* ========== Fallback ========== */

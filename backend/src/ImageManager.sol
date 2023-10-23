@@ -77,7 +77,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
             _priceFeeds[tokenAddresses[i]] = priceFeedAddresses[i];
             _allowedTokens.push(tokenAddresses[i]);
         }
-        _printer = new Printer();
+        _printer = new Printer(address(this));
     }
 
     /* ========== Receive ========== */
