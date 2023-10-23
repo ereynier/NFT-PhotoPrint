@@ -39,9 +39,9 @@ contract Printer is Ownable {
         address owner;
     }
 
-    mapping(address user => NFT nft) nftByUser;
+    mapping(address user => NFT nft) _nftByUser;
 
-    address private admin;
+    address private _admin;
 
     uint256 private constant LOCKING_TIME = 7 days;
 
@@ -52,14 +52,14 @@ contract Printer is Ownable {
     /* ========== Modifiers ========== */
 
     modifier onlyAdmin() {
-        if (msg.sender != admin) {
+        if (msg.sender != _admin) {
             revert Printer__NotAdmin(msg.sender);
         }
         _;
     }
 
     modifier tokenLocked(address user) {
-        if (nftByUser[user].imageAddress == address(0)) {
+        if (_nftByUser[user].imageAddress == address(0)) {
             revert Printer__NoTokenLocked(user);
         }
         _;
@@ -74,7 +74,7 @@ contract Printer is Ownable {
     /* ========== External functions ========== */
 
     function lock(address imageAddress, uint256 imageId, uint256 printId, address owner) external onlyOwner {
-        if (nftByUser[owner].imageAddress != address(0)) {
+        if (_nftByUser[owner].imageAddress != address(0)) {
             revert Printer__NFTAlreadyLocked(owner);
         }
         Image image = Image(imageAddress);
@@ -91,13 +91,13 @@ contract Printer is Ownable {
             cryptedOrderId: "",
             owner: owner
         });
-        nftByUser[owner] = nft;
+        _nftByUser[owner] = nft;
     }
 
     function unlock(address user) external onlyOwner tokenLocked(user) {
         if (
-            nftByUser[user].printed == true || nftByUser[user].timestampLock != 0
-                || nftByUser[user].cryptedOrderId != ""
+            _nftByUser[user].printed == true || _nftByUser[user].timestampLock != 0
+                || _nftByUser[user].cryptedOrderId != ""
         ) {
             revert Printer__NFTCantBeUnlocked(user);
         }
@@ -105,66 +105,66 @@ contract Printer is Ownable {
     }
 
     function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) {
-        if (nftByUser[user].timestampLock != 0) {
+        if (_nftByUser[user].timestampLock != 0) {
             revert Printer__CommandAlreadyConfirmed(user);
         }
-        if (nftByUser[user].printed == true) {
+        if (_nftByUser[user].printed == true) {
             revert Printer__CommandIsPrinted(user);
         }
 
-        nftByUser[user].timestampLock = block.timestamp;
-        nftByUser[user].cryptedOrderId = cryptedOrderId;
+        _nftByUser[user].timestampLock = block.timestamp;
+        _nftByUser[user].cryptedOrderId = cryptedOrderId;
         emit ConfirmOrder(user, cryptedOrderId);
     }
 
     function clearOrderId(address user) external onlyOwner tokenLocked(user) {
-        if (block.timestamp - nftByUser[user].timestampLock < LOCKING_TIME) {
+        if (block.timestamp - _nftByUser[user].timestampLock < LOCKING_TIME) {
             revert Printer__NFTIsLocked(user);
         }
-        if (nftByUser[user].timestampLock == 0) {
+        if (_nftByUser[user].timestampLock == 0) {
             revert Printer__CommandIsNotSet(user);
         }
-        if (nftByUser[user].printed == true) {
+        if (_nftByUser[user].printed == true) {
             revert Printer__CommandIsPrinted(user);
         }
-        nftByUser[user].timestampLock = 0;
-        nftByUser[user].cryptedOrderId = "";
+        _nftByUser[user].timestampLock = 0;
+        _nftByUser[user].cryptedOrderId = "";
     }
 
     function mintCertificate(address user, address certificate) external onlyOwner tokenLocked(user) {
-        if (nftByUser[user].printed == false) {
+        if (_nftByUser[user].printed == false) {
             revert Printer__NFTNotPrinted(user);
         }
         _mintCertificate(user, certificate);
     }
 
     function setPrinted(address user) external onlyAdmin tokenLocked(user) {
-        if (nftByUser[user].printed == true) {
+        if (_nftByUser[user].printed == true) {
             revert Printer__NFTAlreadyPrinted(user);
         }
-        nftByUser[user].printed = true;
+        _nftByUser[user].printed = true;
     }
 
-    function setAdmin(address _admin) external onlyOwner {
-        admin = _admin;
+    function setAdmin(address admin) external onlyOwner {
+        _admin = admin;
     }
 
     /* ========== Public functions ========== */
     /* ========== Internal functions ========== */
     function _withdraw(address user) internal {
-        NFT memory nft = nftByUser[user];
+        NFT memory nft = _nftByUser[user];
         Image image = Image(nft.imageAddress);
         image.transferFrom(address(this), user, nft.imageId);
-        delete nftByUser[user];
+        delete _nftByUser[user];
     }
 
     function _mintCertificate(address user, address certificate) internal {
         // mint certificate with nftByUser[user] specs to user
-        Certificate(certificate).safeMint(user, nftByUser[user].imageId);
+        Certificate(certificate).safeMint(user, _nftByUser[user].imageId);
         // burn nftByUser[user]
-        Image(nftByUser[user].imageAddress).burn(nftByUser[user].imageId);
+        Image(_nftByUser[user].imageAddress).burn(_nftByUser[user].imageId);
         // delete nftByUser[user]
-        delete nftByUser[user];
+        delete _nftByUser[user];
     }
 
     /* ========== Private functions ========== */
@@ -184,19 +184,16 @@ contract Printer is Ownable {
             address owner
         )
     {
-        NFT memory nft = nftByUser[user];
-        return (
-            nft.imageAddress,
-            nft.imageId,
-            nft.printId,
-            nft.printed,
-            nft.timestampLock,
-            nft.cryptedOrderId,
-            nft.owner
-        );
+        NFT memory nft = _nftByUser[user];
+        return
+            (nft.imageAddress, nft.imageId, nft.printId, nft.printed, nft.timestampLock, nft.cryptedOrderId, nft.owner);
     }
 
     function getLockingTime() external pure returns (uint256) {
         return LOCKING_TIME;
+    }
+
+    function getAdminAddress() external view returns (address) {
+        return _admin;
     }
 }
