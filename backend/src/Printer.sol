@@ -107,11 +107,11 @@ contract Printer is Ownable {
     }
 
     function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) {
-        if (_nftByUser[user].timestampLock != 0) {
-            revert Printer__CommandAlreadyConfirmed(user);
-        }
         if (_nftByUser[user].printed == true) {
             revert Printer__CommandIsPrinted(user);
+        }
+        if (_nftByUser[user].timestampLock != 0) {
+            revert Printer__CommandAlreadyConfirmed(user);
         }
 
         _nftByUser[user].timestampLock = block.timestamp;
@@ -120,14 +120,14 @@ contract Printer is Ownable {
     }
 
     function clearOrderId(address user) external onlyOwner tokenLocked(user) {
-        if (block.timestamp - _nftByUser[user].timestampLock < LOCKING_TIME) {
-            revert Printer__NFTIsLocked(user);
+        if (_nftByUser[user].printed == true) {
+            revert Printer__CommandIsPrinted(user);
         }
         if (_nftByUser[user].timestampLock == 0) {
             revert Printer__CommandIsNotSet(user);
         }
-        if (_nftByUser[user].printed == true) {
-            revert Printer__CommandIsPrinted(user);
+        if (block.timestamp - _nftByUser[user].timestampLock < LOCKING_TIME) {
+            revert Printer__NFTIsLocked(user);
         }
         _nftByUser[user].timestampLock = 0;
         _nftByUser[user].cryptedOrderId = "";

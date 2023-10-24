@@ -17,6 +17,8 @@ contract PrinterTest is Test {
     MockImage mockImage;
     MockCertificate mockCertificate;
 
+    event ConfirmOrder(address user, bytes32 cryptedOrderId);
+
     function setUp() public {
         printer = new Printer(OWNER);
         vm.prank(OWNER);
@@ -36,11 +38,234 @@ contract PrinterTest is Test {
 
     /* ===== test function lock ===== */
 
+    function testLockRevertIfNotOwner() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        printer.lock(address(mockImage), 0, 1, USER);
+    }
+
+    function testLockRevertIfATokenAlreadyLocked() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        mockImage.safeMint(USER);
+        vm.prank(USER);
+        mockImage.approve(address(printer), 1);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTAlreadyLocked.selector, USER));
+        printer.lock(address(mockImage), 1, 1, USER);
+    }
+
+    function testLockRevertIfTokenNotApproved() public {
+        vm.prank(OWNER);
+        mockImage.safeMint(USER);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NotApproved.selector, address(mockImage), 0));
+        printer.lock(address(mockImage), 0, 1, USER);
+    }
+
+    function testLockGood() public {
+        vm.prank(OWNER);
+        mockImage.safeMint(USER);
+        vm.prank(USER);
+        mockImage.approve(address(printer), 0);
+        vm.prank(OWNER);
+        printer.lock(address(mockImage), 0, 1, USER);
+        (address imageAddress, uint256 imageId, uint256 printId, bool printed, uint256 timestampLock,,) =
+            printer.getImageLockedByUser(USER);
+        assertEq(imageAddress, address(mockImage));
+        assertEq(imageId, 0);
+        assertEq(printId, 1);
+        assertEq(printed, false);
+        assertEq(timestampLock, 0);
+        vm.prank(OWNER);
+        mockImage.safeMint(OWNER);
+        vm.prank(OWNER);
+        mockImage.approve(address(printer), 1);
+        vm.prank(OWNER);
+        printer.lock(address(mockImage), 1, 2, OWNER);
+        (imageAddress, imageId, printId, printed, timestampLock,,) = printer.getImageLockedByUser(OWNER);
+        assertEq(imageAddress, address(mockImage));
+        assertEq(imageId, 1);
+        assertEq(printId, 2);
+        assertEq(printed, false);
+        assertEq(timestampLock, 0);
+    }
+
     /* ===== test function unlock ===== */
+
+    function testUnlockRevertIfNotOwner() public {
+        mintAndLockInPrinter();
+        vm.expectRevert("Ownable: caller is not the owner");
+        printer.unlock(USER);
+    }
+
+    function testUnlockRevertIfNoTokenLocked() public {
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NoTokenLocked.selector, USER));
+        printer.unlock(USER);
+    }
+
+    function testUnlockRevertIfPrinted() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(ADMIN);
+        printer.setPrinted(USER);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTCantBeUnlocked.selector, USER));
+        printer.unlock(USER);
+    }
+
+    function testUnlockRevertIfOrderConfirmed() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTCantBeUnlocked.selector, USER));
+        printer.unlock(USER);
+    }
+
+    function testUnlockGood() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.unlock(USER);
+        (address imageAddress, uint256 imageId, uint256 printId, bool printed, uint256 timestampLock,,) =
+            printer.getImageLockedByUser(USER);
+        assertEq(imageAddress, address(0));
+        assertEq(imageId, 0);
+        assertEq(printId, 0);
+        assertEq(printed, false);
+        assertEq(timestampLock, 0);
+    }
 
     /* ===== test function confirmOrder ===== */
 
+    function testConfirmOrderRevertIfNotOwner() public {
+        mintAndLockInPrinter();
+        vm.expectRevert("Ownable: caller is not the owner");
+        printer.confirmOrder(USER, bytes32("test"));
+    }
+
+    function testConfirmOrderRevertIfNoTokenLocked() public {
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NoTokenLocked.selector, USER));
+        printer.confirmOrder(USER, bytes32("test"));
+    }
+
+    function testConfirmOrderRevertIfAlreadyPrinted() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(ADMIN);
+        printer.setPrinted(USER);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__CommandIsPrinted.selector, USER));
+        printer.confirmOrder(USER, bytes32("test"));
+    }
+
+    function testConfirmOrderRevertIfAlreadyConfirmed() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__CommandAlreadyConfirmed.selector, USER));
+        printer.confirmOrder(USER, bytes32("test"));
+    }
+
+    function testConfirmOrderGood() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        vm.warp(block.timestamp + 1 days);
+        vm.expectEmit(false, false, false, true);
+        emit ConfirmOrder(USER, bytes32("test"));
+        printer.confirmOrder(USER, bytes32("test"));
+        (
+            address imageAddress,
+            uint256 imageId,
+            uint256 printId,
+            bool printed,
+            uint256 timestampLock,
+            bytes32 cryptedOrderId,
+        ) = printer.getImageLockedByUser(USER);
+        assertEq(imageAddress, address(mockImage));
+        assertEq(imageId, 0);
+        assertEq(printId, 1);
+        assertEq(printed, false);
+        assertEq(timestampLock, block.timestamp);
+        assertEq(cryptedOrderId, bytes32("test"));
+    }
+
     /* ===== test function clearOrderId ===== */
+
+    function testClearOrderIdRevertIfNotOwner() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.expectRevert("Ownable: caller is not the owner");
+        printer.clearOrderId(USER);
+    }
+
+    function testClearOrderIdRevertIfNoTokenLocked() public {
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NoTokenLocked.selector, USER));
+        printer.clearOrderId(USER);
+    }
+
+    function testClearOrderIdRevertIfPrinted() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(ADMIN);
+        printer.setPrinted(USER);
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__CommandIsPrinted.selector, USER));
+        printer.clearOrderId(USER);
+    }
+
+    function testClearOrderIdRevertIfNotConfirmed() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__CommandIsNotSet.selector, USER));
+        printer.clearOrderId(USER);
+    }
+
+    function testClearOrderIdRevertIfTimestampNotReached() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        vm.prank(OWNER);
+        vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTIsLocked.selector, USER));
+        printer.clearOrderId(USER);
+    }
+
+    function testClearOrderIdGood() public {
+        mintAndLockInPrinter();
+        vm.prank(OWNER);
+        printer.confirmOrder(USER, bytes32("test"));
+        (
+            address imageAddress,
+            uint256 imageId,
+            uint256 printId,
+            bool printed,
+            uint256 timestampLock,
+            bytes32 cryptedOrderId,
+        ) = printer.getImageLockedByUser(USER);
+        assertEq(imageAddress, address(mockImage));
+        assertEq(imageId, 0);
+        assertEq(printId, 1);
+        assertEq(printed, false);
+        assertEq(timestampLock, block.timestamp);
+        assertEq(cryptedOrderId, bytes32("test"));
+        vm.warp(block.timestamp + LOCKING_TIME + 1);
+        vm.prank(OWNER);
+        printer.clearOrderId(USER);
+        (imageAddress, imageId, printId, printed, timestampLock, cryptedOrderId,) = printer.getImageLockedByUser(USER);
+        assertEq(imageAddress, address(mockImage));
+        assertEq(imageId, 0);
+        assertEq(printId, 1);
+        assertEq(printed, false);
+        assertEq(timestampLock, 0);
+        assertEq(cryptedOrderId, bytes32(0));
+    }
 
     /* ===== test function mintCertificate ===== */
 
@@ -71,7 +296,7 @@ contract PrinterTest is Test {
         vm.prank(OWNER);
         printer.mintCertificate(USER, address(mockCertificate));
         assertEq(mockCertificate.ownerOf(0), USER);
-        (address imageAddress, , , bool printed, , , ) = printer.getImageLockedByUser(USER);
+        (address imageAddress,,, bool printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(0));
         assertEq(printed, false);
     }
@@ -115,11 +340,11 @@ contract PrinterTest is Test {
         mintAndLockInPrinter();
         vm.prank(OWNER);
         printer.confirmOrder(USER, bytes32("test"));
-        (, , , bool printed, , , ) = printer.getImageLockedByUser(USER);
+        (,,, bool printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(printed, false);
         vm.prank(ADMIN);
         printer.setPrinted(USER);
-        (, , , printed, , , ) = printer.getImageLockedByUser(USER);
+        (,,, printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(printed, true);
     }
 
