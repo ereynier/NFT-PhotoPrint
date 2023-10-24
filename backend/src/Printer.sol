@@ -47,7 +47,10 @@ contract Printer is Ownable {
 
     /* ========== Events ========== */
 
-    event ConfirmOrder(address user, bytes32 cryptedOrderId);
+    event ConfirmOrder(address indexed user, bytes32 cryptedOrderId);
+    event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
+    event ImageUnlocked(address indexed user, address imageAddress, uint256 imageId);
+    event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
 
     /* ========== Modifiers ========== */
 
@@ -94,6 +97,7 @@ contract Printer is Ownable {
             owner: owner
         });
         _nftByUser[owner] = nft;
+        emit ImageLocked(owner, imageAddress, imageId);
     }
 
     function unlock(address user) external onlyOwner tokenLocked(user) {
@@ -104,6 +108,7 @@ contract Printer is Ownable {
             revert Printer__NFTCantBeUnlocked(user);
         }
         _withdraw(user);
+        emit ImageUnlocked(user, _nftByUser[user].imageAddress, _nftByUser[user].imageId);
     }
 
     function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) {
@@ -138,6 +143,7 @@ contract Printer is Ownable {
             revert Printer__NFTNotPrinted(user);
         }
         _mintCertificate(user, certificate);
+        emit CertificateMinted(user, certificate, _nftByUser[user].imageId);
     }
 
     function setPrinted(address user) external onlyAdmin tokenLocked(user) {

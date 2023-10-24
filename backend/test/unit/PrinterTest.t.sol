@@ -17,7 +17,9 @@ contract PrinterTest is Test {
     MockImage mockImage;
     MockCertificate mockCertificate;
 
-    event ConfirmOrder(address user, bytes32 cryptedOrderId);
+    event ConfirmOrder(address indexed user, bytes32 cryptedOrderId);
+    event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
+    event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
 
     function setUp() public {
         printer = new Printer(OWNER);
@@ -67,8 +69,11 @@ contract PrinterTest is Test {
         mockImage.safeMint(USER);
         vm.prank(USER);
         mockImage.approve(address(printer), 0);
-        vm.prank(OWNER);
+        vm.startPrank(OWNER);
+        vm.expectEmit(true, false, false, true);
+        emit ImageLocked(USER, address(mockImage), 0);
         printer.lock(address(mockImage), 0, 1, USER);
+        vm.stopPrank();
         (address imageAddress, uint256 imageId, uint256 printId, bool printed, uint256 timestampLock,,) =
             printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
@@ -173,11 +178,12 @@ contract PrinterTest is Test {
 
     function testConfirmOrderGood() public {
         mintAndLockInPrinter();
-        vm.prank(OWNER);
         vm.warp(block.timestamp + 1 days);
-        vm.expectEmit(false, false, false, true);
+        vm.startPrank(OWNER);
+        vm.expectEmit(true, false, false, true);
         emit ConfirmOrder(USER, bytes32("test"));
         printer.confirmOrder(USER, bytes32("test"));
+        vm.stopPrank();
         (
             address imageAddress,
             uint256 imageId,
@@ -294,6 +300,8 @@ contract PrinterTest is Test {
         vm.prank(ADMIN);
         printer.setPrinted(USER);
         vm.prank(OWNER);
+        vm.expectEmit(true, false, false, true);
+        emit CertificateMinted(USER, address(mockCertificate), 0);
         printer.mintCertificate(USER, address(mockCertificate));
         assertEq(mockCertificate.ownerOf(0), USER);
         (address imageAddress,,, bool printed,,,) = printer.getImageLockedByUser(USER);
