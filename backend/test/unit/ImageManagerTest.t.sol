@@ -43,7 +43,7 @@ contract ImageManagerTest is Test {
 
     uint256 public STARTING_ERC20_BALANCE = 100 ether;
 
-    event imageCreated(address imageAddress);
+    event ImageCreated(address imageAddress);
 
     function setUp() public {
         deployer = new ImageManagerDeployer();

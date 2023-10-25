@@ -6,10 +6,11 @@ pragma solidity 0.8.18;
 import {Image} from "./Image.sol";
 import {Certificate} from "./Certificate.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /* ========== Interfaces, libraries, contracts ========== */
 
-contract Printer is Ownable {
+contract Printer is Ownable, ReentrancyGuard {
     /* ========== Errors ========== */
 
     error Printer__NotTokenOwner(address imageAddress, uint256 imageId);
@@ -24,6 +25,7 @@ contract Printer is Ownable {
     error Printer__NFTIsLocked(address user);
     error Printer__CommandIsNotSet(address user);
     error Printer__CommandIsPrinted(address user);
+    error Printer__ZeroAddress();
 
     /* ========== Types ========== */
 
@@ -50,6 +52,7 @@ contract Printer is Ownable {
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
     event ImageUnlocked(address indexed user, address imageAddress, uint256 imageId);
     event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
+    event AdminChanged(address indexed admin);
 
     /* ========== Modifiers ========== */
 
@@ -77,7 +80,7 @@ contract Printer is Ownable {
     /* ========== Fallback ========== */
     /* ========== External functions ========== */
 
-    function lock(address imageAddress, uint256 imageId, address owner) external onlyOwner {
+    function lock(address imageAddress, uint256 imageId, address owner) external onlyOwner nonReentrant {
         if (_nftByUser[owner].imageAddress != address(0)) {
             revert Printer__NFTAlreadyLocked(owner);
         }
@@ -85,7 +88,6 @@ contract Printer is Ownable {
         if (image.getApproved(imageId) != address(this)) {
             revert Printer__NotApproved(imageAddress, imageId);
         }
-        image.transferFrom(owner, address(this), imageId);
         NFT memory nft = NFT({
             imageAddress: imageAddress,
             imageId: imageId,
@@ -95,12 +97,13 @@ contract Printer is Ownable {
             owner: owner
         });
         _nftByUser[owner] = nft;
+        image.transferFrom(owner, address(this), imageId);
         emit ImageLocked(owner, imageAddress, imageId);
     }
 
-    function unlock(address user) external onlyOwner tokenLocked(user) {
+    function unlock(address user) external onlyOwner tokenLocked(user) nonReentrant {
         if (
-            _nftByUser[user].printed == true || _nftByUser[user].timestampLock != 0
+            _nftByUser[user].printed || _nftByUser[user].timestampLock != 0
                 || _nftByUser[user].cryptedOrderId != ""
         ) {
             revert Printer__NFTCantBeUnlocked(user);
@@ -109,8 +112,8 @@ contract Printer is Ownable {
         emit ImageUnlocked(user, _nftByUser[user].imageAddress, _nftByUser[user].imageId);
     }
 
-    function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) {
-        if (_nftByUser[user].printed == true) {
+    function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) nonReentrant {
+        if (_nftByUser[user].printed) {
             revert Printer__CommandIsPrinted(user);
         }
         if (_nftByUser[user].timestampLock != 0) {
@@ -122,8 +125,8 @@ contract Printer is Ownable {
         emit ConfirmOrder(user, cryptedOrderId);
     }
 
-    function clearOrderId(address user) external onlyOwner tokenLocked(user) {
-        if (_nftByUser[user].printed == true) {
+    function clearOrderId(address user) external onlyOwner tokenLocked(user) nonReentrant {
+        if (_nftByUser[user].printed) {
             revert Printer__CommandIsPrinted(user);
         }
         if (_nftByUser[user].timestampLock == 0) {
@@ -136,16 +139,16 @@ contract Printer is Ownable {
         _nftByUser[user].cryptedOrderId = "";
     }
 
-    function mintCertificate(address user, address certificate) external onlyOwner tokenLocked(user) {
-        if (_nftByUser[user].printed == false) {
+    function mintCertificate(address user, address certificate) external onlyOwner tokenLocked(user) nonReentrant {
+        if (!_nftByUser[user].printed) {
             revert Printer__NFTNotPrinted(user);
         }
         _mintCertificate(user, certificate);
         emit CertificateMinted(user, certificate, _nftByUser[user].imageId);
     }
 
-    function setPrinted(address user) external onlyAdmin tokenLocked(user) {
-        if (_nftByUser[user].printed == true) {
+    function setPrinted(address user) external onlyAdmin tokenLocked(user) nonReentrant {
+        if (_nftByUser[user].printed) {
             revert Printer__NFTAlreadyPrinted(user);
         }
         if (_nftByUser[user].timestampLock == 0) {
@@ -155,7 +158,11 @@ contract Printer is Ownable {
     }
 
     function setAdmin(address admin) external onlyOwner {
+        if (admin == address(0)) {
+            revert Printer__ZeroAddress();
+        }
         _admin = admin;
+        emit AdminChanged(admin);
     }
 
     /* ========== Public functions ========== */
@@ -163,17 +170,17 @@ contract Printer is Ownable {
     function _withdraw(address user) internal {
         NFT memory nft = _nftByUser[user];
         Image image = Image(nft.imageAddress);
-        image.transferFrom(address(this), user, nft.imageId);
         delete _nftByUser[user];
+        image.transferFrom(address(this), user, nft.imageId);
     }
 
     function _mintCertificate(address user, address certificate) internal {
+        // delete nftByUser[user]
+        delete _nftByUser[user];
         // mint certificate with nftByUser[user] specs to user
         Certificate(certificate).safeMint(user, _nftByUser[user].imageId);
         // burn nftByUser[user]
         Image(_nftByUser[user].imageAddress).burn(_nftByUser[user].imageId);
-        // delete nftByUser[user]
-        delete _nftByUser[user];
     }
 
     /* ========== Private functions ========== */

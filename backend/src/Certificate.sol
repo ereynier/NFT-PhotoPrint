@@ -48,8 +48,8 @@ contract Certificate is ERC721, Ownable {
         if (_mintedTokens[tokenId]) {
             revert Certificate__TokenAlreadyMinted(tokenId);
         }
-        _safeMint(to, tokenId);
         _mintedTokens[tokenId] = true;
+        _safeMint(to, tokenId);
     }
 
     /* ========== Internal functions ========== */

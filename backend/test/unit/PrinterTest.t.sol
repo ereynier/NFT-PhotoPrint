@@ -20,6 +20,7 @@ contract PrinterTest is Test {
     event ConfirmOrder(address indexed user, bytes32 cryptedOrderId);
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
     event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
+    event AdminChanged(address indexed admin);
 
     function setUp() public {
         printer = new Printer(OWNER);
@@ -181,13 +182,8 @@ contract PrinterTest is Test {
         emit ConfirmOrder(USER, bytes32("test"));
         printer.confirmOrder(USER, bytes32("test"));
         vm.stopPrank();
-        (
-            address imageAddress,
-            uint256 imageId,
-            bool printed,
-            uint256 timestampLock,
-            bytes32 cryptedOrderId,
-        ) = printer.getImageLockedByUser(USER);
+        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock, bytes32 cryptedOrderId,) =
+            printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
         assertEq(printed, false);
@@ -242,13 +238,8 @@ contract PrinterTest is Test {
         mintAndLockInPrinter();
         vm.prank(OWNER);
         printer.confirmOrder(USER, bytes32("test"));
-        (
-            address imageAddress,
-            uint256 imageId,
-            bool printed,
-            uint256 timestampLock,
-            bytes32 cryptedOrderId,
-        ) = printer.getImageLockedByUser(USER);
+        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock, bytes32 cryptedOrderId,) =
+            printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
         assertEq(printed, false);
@@ -350,14 +341,23 @@ contract PrinterTest is Test {
 
     /* ===== test function setAdmin ===== */
 
+    function testSetAdminRevertIfZeroAddress() public {
+        vm.startPrank(OWNER);
+        vm.expectRevert(Printer.Printer__ZeroAddress.selector);
+        printer.setAdmin(address(0));
+        vm.stopPrank();
+    }
+
     function testSetAdmin() public {
         assertEq(printer.getAdminAddress(), ADMIN);
-        vm.prank(OWNER);
+        vm.startPrank(OWNER);
+        vm.expectEmit(true, false, false, false);
+        emit AdminChanged(USER);
         printer.setAdmin(USER);
         assertEq(printer.getAdminAddress(), USER);
-        vm.prank(OWNER);
         printer.setAdmin(ADMIN);
         assertEq(printer.getAdminAddress(), ADMIN);
+        vm.stopPrank();
     }
 
     /* ===== test public & external view / pure function ===== */
@@ -398,8 +398,7 @@ contract PrinterTest is Test {
         assertEq(owner, USER);
         vm.prank(OWNER);
         printer.confirmOrder(USER, bytes32("test"));
-        (imageAddress, imageId, printed, timestampLock, cryptedOrderId, owner) =
-            printer.getImageLockedByUser(USER);
+        (imageAddress, imageId, printed, timestampLock, cryptedOrderId, owner) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
         assertEq(printed, false);

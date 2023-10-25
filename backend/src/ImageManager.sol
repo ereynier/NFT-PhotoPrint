@@ -52,7 +52,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     /* ========== Events ========== */
 
-    event imageCreated(address imageAddress);
+    event ImageCreated(address imageAddress);
 
     /* ========== Modifiers ========== */
 
@@ -164,7 +164,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         _isImage[address(image)] = true;
         _imagePricesInUsdInWei[address(image)] = _priceInUsd;
         _printIds[address(image)] = _printId;
-        emit imageCreated(address(image));
+        emit ImageCreated(address(image));
         return address(image);
     }
 
