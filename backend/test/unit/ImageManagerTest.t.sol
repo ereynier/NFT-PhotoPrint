@@ -48,9 +48,9 @@ contract ImageManagerTest is Test {
     function setUp() public {
         deployer = new ImageManagerDeployer();
         (imageManager, config) = deployer.run();
-        (wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed,,,,,,) =
+        (wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed,,,,,,,) =
             config.activeNetworkConfig();
-        (,,,,, wbtc, weth, dai, usdc, usdt,) = config.activeNetworkConfig();
+        (,,,,, wbtc, weth, dai, usdc, usdt,,) = config.activeNetworkConfig();
         allowedTokens = [wbtc, weth, dai, usdc, usdt];
         priceFeeds = [wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed];
         vm.prank(OWNER);

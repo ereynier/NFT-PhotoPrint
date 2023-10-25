@@ -18,6 +18,7 @@ contract HelperConfig is Script {
         address dai;
         address usdc;
         address usdt;
+        address owner;
         uint256 deployerKey;
     }
 
@@ -28,6 +29,7 @@ contract HelperConfig is Script {
     int256 public constant USDC_USD_PRICE = 1e8;
     int256 public constant USDT_USD_PRICE = 101e6;
     uint256 public DEFAULT_ANVIL_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+    address public constant owner = 0xaA136C6bDfe6DfC154E9912Ead80F7179c55Bc08;
 
     NetworkConfig public activeNetworkConfig;
 
@@ -53,6 +55,7 @@ contract HelperConfig is Script {
             dai: 0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F,
             usdc: address(0),
             usdt: address(0),
+            owner: owner,
             deployerKey: vm.envUint("PRIVATE_KEY")
         });
     }
@@ -69,6 +72,7 @@ contract HelperConfig is Script {
             dai: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063,
             usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
             usdt: 0xc2132D05D31c914a87C6611C10748AEb04B58e8F,
+            owner: owner,
             deployerKey: vm.envUint("PRIVATE_KEY")
         });
     }
@@ -107,6 +111,7 @@ contract HelperConfig is Script {
             dai: address(daiMock),
             usdc: address(usdcMock),
             usdt: address(usdtMock),
+            owner: owner,
             deployerKey: DEFAULT_ANVIL_KEY
         });
     }

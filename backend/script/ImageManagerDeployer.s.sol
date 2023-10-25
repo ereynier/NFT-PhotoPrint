@@ -23,15 +23,23 @@ contract ImageManagerDeployer is Script {
             address dai,
             address usdc,
             address usdt,
+            address owner,
             uint256 deployerKey
         ) = config.activeNetworkConfig();
 
-        tokenAddresses = [wbtc, weth, dai, usdc, usdt];
-        priceFeedAddresses = [wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed];
+        address[5] memory tmpTokenAddresses = [wbtc, weth, dai, usdc, usdt];
+        address[5] memory tmpPriceFeedAddresses = [wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed];
+
+        for (uint256 i = 0; i < tmpTokenAddresses.length; i++) {
+            if (tmpTokenAddresses[i] != address(0) && tmpPriceFeedAddresses[i] != address(0)) {
+                tokenAddresses.push(tmpTokenAddresses[i]);
+                priceFeedAddresses.push(tmpPriceFeedAddresses[i]);
+            }
+        }
 
         vm.startBroadcast(deployerKey);
         ImageManager manager = new ImageManager(
-            0xaA136C6bDfe6DfC154E9912Ead80F7179c55Bc08, tokenAddresses, priceFeedAddresses
+            owner, tokenAddresses, priceFeedAddresses
         );
         vm.stopBroadcast();
 
