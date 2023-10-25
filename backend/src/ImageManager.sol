@@ -239,6 +239,10 @@ contract ImageManager is Ownable, ReentrancyGuard {
         return _allowedTokens;
     }
 
+    function getPriceFeeds(address tokenAddress) external view returns (address) {
+        return _priceFeeds[tokenAddress];
+    }
+
     function getIsImage(address imageAddress) external view returns (bool) {
         return _isImage[imageAddress];
     }
