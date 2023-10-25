@@ -9,6 +9,7 @@ import {Certificate} from "../../src/Certificate.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ImageManagerDeployer} from "../../script/ImageManagerDeployer.s.sol";
 import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 import {Image} from "../../src/Image.sol";
 
 contract ImageManagerTest is Test {
@@ -47,18 +48,9 @@ contract ImageManagerTest is Test {
     function setUp() public {
         deployer = new ImageManagerDeployer();
         (imageManager, config) = deployer.run();
-        (
-            wbtcUsdPriceFeed,
-            wethUsdPriceFeed,
-            daiUsdPriceFeed,
-            usdcUsdPriceFeed,
-            usdtUsdPriceFeed,
-            wbtc,
-            weth,
-            dai,
-            usdc,
-            usdt,
-        ) = config.activeNetworkConfig();
+        (wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed,,,,,,) =
+            config.activeNetworkConfig();
+        (,,,,, wbtc, weth, dai, usdc, usdt,) = config.activeNetworkConfig();
         allowedTokens = [wbtc, weth, dai, usdc, usdt];
         priceFeeds = [wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed];
         vm.prank(OWNER);
@@ -88,7 +80,9 @@ contract ImageManagerTest is Test {
     function testMintRevertIfTokenNotAllowed() public {
         vm.prank(OWNER);
         address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
-        vm.expectRevert(abi.encodeWithSelector(ImageManager.ImageManager__TokenNotAllowed.selector, makeAddr("notAllowedToken")));
+        vm.expectRevert(
+            abi.encodeWithSelector(ImageManager.ImageManager__TokenNotAllowed.selector, makeAddr("notAllowedToken"))
+        );
         imageManager.mint(imageAddress, USER_1, makeAddr("notAllowedToken"));
     }
 
@@ -107,7 +101,14 @@ contract ImageManagerTest is Test {
     function testMintRevertIfNotEnoughTokenAllowed() public {
         vm.prank(OWNER);
         address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
-        vm.expectRevert(abi.encodeWithSelector(ImageManager.ImageManager__NotEnoughTokenAllowed.selector, wbtc, imageManager.getTokenAmountFromUsd(wbtc, VALUE_IN_USD), USER_1));
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ImageManager.ImageManager__NotEnoughTokenAllowed.selector,
+                wbtc,
+                imageManager.getTokenAmountFromUsd(wbtc, VALUE_IN_USD),
+                USER_1
+            )
+        );
         vm.prank(USER_1);
         imageManager.mint(imageAddress, USER_1, wbtc);
     }
@@ -123,14 +124,18 @@ contract ImageManagerTest is Test {
         Image image = Image(imageAddress);
         assertEq(image.getNextId(), 1);
         assertEq(image.ownerOf(0), USER_1);
-        assertEq(ERC20Mock(wbtc).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(wbtc, VALUE_IN_USD));
+        assertEq(
+            ERC20Mock(wbtc).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(wbtc, VALUE_IN_USD)
+        );
         assertEq(image.balanceOf(USER_1), 1);
         vm.startPrank(USER_1);
         imageManager.mint(imageAddress, USER_1, wbtc);
         vm.stopPrank();
         assertEq(image.getNextId(), 2);
         assertEq(image.ownerOf(1), USER_1);
-        assertEq(ERC20Mock(wbtc).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(wbtc, VALUE_IN_USD) * 2);
+        assertEq(
+            ERC20Mock(wbtc).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(wbtc, VALUE_IN_USD) * 2
+        );
         assertEq(image.balanceOf(USER_1), 2);
     }
 
@@ -164,7 +169,8 @@ contract ImageManagerTest is Test {
         image.approve(address(printerAddress), 0);
         imageManager.lockImage(imageAddress, 0);
         vm.stopPrank();
-        (address imageAddress_, uint256 imageId_, , , , address owner) = Printer(printerAddress).getImageLockedByUser(USER_1);
+        (address imageAddress_, uint256 imageId_,,,, address owner) =
+            Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, imageAddress);
         assertEq(imageId_, 0);
         assertEq(owner, USER_1);
@@ -185,7 +191,8 @@ contract ImageManagerTest is Test {
         imageManager.lockImage(imageAddress, 0);
         imageManager.unlockImage();
         vm.stopPrank();
-        (address imageAddress_, uint256 imageId_, , , , address owner) = Printer(printerAddress).getImageLockedByUser(USER_1);
+        (address imageAddress_, uint256 imageId_,,,, address owner) =
+            Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, address(0));
         assertEq(imageId_, 0);
         assertEq(owner, address(0));
@@ -206,7 +213,14 @@ contract ImageManagerTest is Test {
         imageManager.lockImage(imageAddress, 0);
         imageManager.confirmOrder("test");
         vm.stopPrank();
-        (address imageAddress_, uint256 imageId_, bool printed_, uint256 timestampLock_, bytes32 cryptedOrderId, address owner) = Printer(printerAddress).getImageLockedByUser(USER_1);
+        (
+            address imageAddress_,
+            uint256 imageId_,
+            bool printed_,
+            uint256 timestampLock_,
+            bytes32 cryptedOrderId,
+            address owner
+        ) = Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, imageAddress);
         assertEq(imageId_, 0);
         assertEq(printed_, false);
@@ -232,7 +246,14 @@ contract ImageManagerTest is Test {
         vm.warp(block.timestamp + LOCKING_TIME + 1);
         imageManager.clearOrderId();
         vm.stopPrank();
-        (address imageAddress_, uint256 imageId_, bool printed_, uint256 timestampLock_, bytes32 cryptedOrderId, address owner) = Printer(printerAddress).getImageLockedByUser(USER_1);
+        (
+            address imageAddress_,
+            uint256 imageId_,
+            bool printed_,
+            uint256 timestampLock_,
+            bytes32 cryptedOrderId,
+            address owner
+        ) = Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, imageAddress);
         assertEq(imageId_, 0);
         assertEq(printed_, false);
@@ -267,7 +288,14 @@ contract ImageManagerTest is Test {
         Printer(printerAddress).setPrinted(USER_1);
         vm.prank(USER_1);
         imageManager.mintCertificate(USER_1);
-        (address imageAddress_, uint256 imageId_, bool printed_, uint256 timestampLock_, bytes32 cryptedOrderId, address owner) = Printer(printerAddress).getImageLockedByUser(USER_1);
+        (
+            address imageAddress_,
+            uint256 imageId_,
+            bool printed_,
+            uint256 timestampLock_,
+            bytes32 cryptedOrderId,
+            address owner
+        ) = Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, address(0));
         assertEq(imageId_, 0);
         assertEq(printed_, false);
@@ -278,6 +306,27 @@ contract ImageManagerTest is Test {
     }
 
     /* ===== test function createImage ===== */
+
+    function testCreateImageRevertIfNotOwner() public {
+        vm.expectRevert("Ownable: caller is not the owner");
+        imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+    }
+
+    function testCreateImageGood() public {
+        vm.startPrank(OWNER);
+        address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        vm.stopPrank();
+        Image image = Image(imageAddress);
+        Certificate certificate = Certificate(imageManager.getCertificateByImage(imageAddress));
+        assertEq(image.name(), "test");
+        assertEq(image.symbol(), "TEST");
+        assertEq(image.getMaxSupply(), MAX_SUPPLY);
+        assertEq(imageManager.getPrintId(address(image)), 2);
+        assertEq(imageManager.getImagePriceInUsdInWei(address(imageAddress)), VALUE_IN_USD);
+        assertEq(certificate.name(), "test - Certificate");
+        assertEq(certificate.symbol(), "TEST_C");
+        assertEq(image.getMaxSupply(), MAX_SUPPLY);
+    }
 
     /* ===== test function withdrawToken ===== */
 
@@ -314,7 +363,9 @@ contract ImageManagerTest is Test {
         imageManager.mint(imageAddress, USER_1, weth);
         imageManager.mint(imageAddress, USER_1, dai);
         vm.stopPrank();
-        assertEq(ERC20Mock(weth).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(weth, VALUE_IN_USD));
+        assertEq(
+            ERC20Mock(weth).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(weth, VALUE_IN_USD)
+        );
         assertEq(ERC20Mock(dai).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(dai, VALUE_IN_USD));
         vm.prank(OWNER);
         imageManager.withdrawToken(weth, OWNER);
@@ -397,5 +448,79 @@ contract ImageManagerTest is Test {
     }
 
     /* ===== test public & external view / pure function ===== */
+
+    function testGetPrinterAddress() public {
+        assertEq(imageManager.getPrinterAddress(), printerAddress);
+    }
+
+    function testGetPrintId() public {
+        vm.prank(OWNER);
+        address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        assertEq(imageManager.getPrintId(imageAddress), 2);
+    }
+
+    function testGetImagesAddresses() public {
+        vm.prank(OWNER);
+        address imageAddress_1 = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        vm.prank(OWNER);
+        address imageAddress_2 = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        assertEq(imageManager.getImagesAddresses().length, 2);
+        assertEq(imageManager.getImagesAddresses()[0], imageAddress_1);
+        assertEq(imageManager.getImagesAddresses()[1], imageAddress_2);
+    }
+
+    function testGetCertificateByImage() public {
+        vm.prank(OWNER);
+        address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        Certificate certificate = Certificate(imageManager.getCertificateByImage(imageAddress));
+        assertEq(certificate.name(), "test - Certificate");
+        assertEq(certificate.symbol(), "TEST_C");
+        assertEq(certificate.getMaxSupply(), MAX_SUPPLY);
+    }
+
+    function testGetImageByCertificate() public {
+        vm.prank(OWNER);
+        address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        address certificateAddress = imageManager.getCertificateByImage(imageAddress);
+        assertEq(imageManager.getImageByCertificate(certificateAddress), imageAddress);
+    }
+
+    function testGetImagePriceInUsdInWei() public {
+        vm.prank(OWNER);
+        address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        assertEq(imageManager.getImagePriceInUsdInWei(imageAddress), VALUE_IN_USD);
+    }
+
+    function testGetAllowedTokens() public {
+        address[] memory allowedTokens_ = imageManager.getAllowedTokens();
+        assertEq(allowedTokens_.length, 5);
+        assertEq(allowedTokens_[0], wbtc);
+        assertEq(allowedTokens_[1], weth);
+        assertEq(allowedTokens_[2], dai);
+        assertEq(allowedTokens_[3], usdc);
+        assertEq(allowedTokens_[4], usdt);
+    }
+
+    function testGetPriceFeeds() public {
+        assertEq(imageManager.getPriceFeeds(wbtc), wbtcUsdPriceFeed);
+        assertEq(imageManager.getPriceFeeds(weth), wethUsdPriceFeed);
+        assertEq(imageManager.getPriceFeeds(dai), daiUsdPriceFeed);
+        assertEq(imageManager.getPriceFeeds(usdc), usdcUsdPriceFeed);
+        assertEq(imageManager.getPriceFeeds(usdt), usdtUsdPriceFeed);
+    }
+
+    function testGetIsImage() public {
+        vm.prank(OWNER);
+        address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        assertEq(imageManager.getIsImage(imageAddress), true);
+        assertEq(imageManager.getIsImage(OWNER), false);
+    }
+
+    function testGetTokenAmountFromUsd() public {
+        MockV3Aggregator(usdcUsdPriceFeed).updateAnswer(1e8);
+        assertEq(imageManager.getTokenAmountFromUsd(usdc, 1e8), 1e8);
+        MockV3Aggregator(usdcUsdPriceFeed).updateAnswer(1e10);
+        assertEq(imageManager.getTokenAmountFromUsd(usdc, 1e8), 1e6);
+    }
 
 }
