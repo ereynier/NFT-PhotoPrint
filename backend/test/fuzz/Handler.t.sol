@@ -68,24 +68,54 @@ contract Handler is Test {
         _addUser(msg.sender);
     }
 
-    function lockImage() external {
-        _addUser(msg.sender);
+    function lockImage(address imageAddress) external {
+        imageAddress = _getImageAddressFromSeed(uint256(uint160(imageAddress)));
+        if (Image(imageAddress).balanceOf(msg.sender) == 0) {
+            return;
+        }
+        (address imageAddress_,,,,,) = Printer(printer).getImageLockedByUser(msg.sender);
+        if (imageAddress_ != address(0)) {
+            return;
+        }
+        uint256 tokenId = _getValidTokenId(msg.sender, imageAddress);
+        Image(imageAddress).approve(address(printer), tokenId);
+        imageManager.lockImage(imageAddress, tokenId);
     }
 
     function unlockImage() external {
-        _addUser(msg.sender);
+        (address imageAddress,, bool printed, uint256 timestampLock, bytes32 cryptedOrderId,) =
+            Printer(printer).getImageLockedByUser(msg.sender);
+        if (imageAddress == address(0) || printed || timestampLock == 0 || cryptedOrderId != bytes32(0)) {
+            return;
+        }
+        imageManager.unlockImage();
     }
 
     function confirmOrder() external {
-        _addUser(msg.sender);
+        (address imageAddress,, bool printed, uint256 timestampLock,,) =
+            Printer(printer).getImageLockedByUser(msg.sender);
+        if (imageAddress == address(0) || printed || timestampLock != 0) {
+            return;
+        }
+        imageManager.confirmOrder(bytes32("test"));
     }
 
     function clearOrderId() external {
-        _addUser(msg.sender);
+        (address imageAddress,, bool printed, uint256 timestampLock,,) =
+            Printer(printer).getImageLockedByUser(msg.sender);
+        if (imageAddress == address(0) || printed || timestampLock == 0 || block.timestamp - timestampLock < Printer(printer).getLockingTime()) {
+            return;
+        }
+        imageManager.clearOrderId();
     }
 
     function mintCertificate() external {
-        _addUser(msg.sender);
+        (address imageAddress,, bool printed,,,) =
+            Printer(printer).getImageLockedByUser(msg.sender);
+            if (imageAddress == address(0) || !printed) {
+            return;
+        }
+        imageManager.mintCertificate(msg.sender);
     }
 
     /* ===== Owner Functions ===== */
@@ -99,6 +129,9 @@ contract Handler is Test {
     /* ===== Admin Functions ===== */
 
     function setPrinted(address user) external {
+        if (users.length == 0) {
+            return;
+        }
         user = _getUserFromSeed(uint256(uint160(user)));
         (address imageAddress,, bool printed, uint256 timestampLock,,) = Printer(printer).getImageLockedByUser(user);
         if (imageAddress == address(0) || printed || timestampLock == 0) {
@@ -137,5 +170,14 @@ contract Handler is Test {
         uint256 randomSeed = imageSeed % imageManager.getImagesAddresses().length;
         address imageAddress = imageManager.getImagesAddresses()[randomSeed];
         return imageAddress;
+    }
+
+    function _getValidTokenId(address user, address imageAddress) private view returns (uint256) {
+        for (uint256 i = 0; i < Image(imageAddress).getNextId(); i++) {
+            if (Image(imageAddress).ownerOf(i) == user) {
+                return i;
+            }
+        }
+        return 0;
     }
 }

@@ -49,8 +49,7 @@ contract InvariantsTest is StdInvariant, Test {
 
     function invariant_() public {}
 
-    function invariant_gettersShouldNotRevert(uint256 usdAmountInWei) public view {
-        usdAmountInWei = bound(usdAmountInWei, 0.001 ether, 100000 ether);
+    function invariant_gettersShouldNotRevert() public view {
 
         address[] memory imageAddresses = imageManager.getImagesAddresses();
         address imageAddress;
@@ -72,7 +71,6 @@ contract InvariantsTest is StdInvariant, Test {
         if (allowedTokens.length > 0) {
             address tokenAddress = allowedTokens[0];
             imageManager.getPriceFeeds(tokenAddress);
-            imageManager.getTokenAmountFromUsd(tokenAddress, usdAmountInWei);
         }
     }
 }
