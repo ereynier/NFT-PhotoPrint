@@ -32,7 +32,6 @@ contract Printer is Ownable {
     struct NFT {
         address imageAddress;
         uint256 imageId;
-        uint256 printId;
         bool printed;
         uint256 timestampLock;
         bytes32 cryptedOrderId;
@@ -78,7 +77,7 @@ contract Printer is Ownable {
     /* ========== Fallback ========== */
     /* ========== External functions ========== */
 
-    function lock(address imageAddress, uint256 imageId, uint256 printId, address owner) external onlyOwner {
+    function lock(address imageAddress, uint256 imageId, address owner) external onlyOwner {
         if (_nftByUser[owner].imageAddress != address(0)) {
             revert Printer__NFTAlreadyLocked(owner);
         }
@@ -90,7 +89,6 @@ contract Printer is Ownable {
         NFT memory nft = NFT({
             imageAddress: imageAddress,
             imageId: imageId,
-            printId: printId,
             printed: false,
             timestampLock: 0,
             cryptedOrderId: "",
@@ -188,7 +186,6 @@ contract Printer is Ownable {
         returns (
             address imageAddress,
             uint256 imageId,
-            uint256 printId,
             bool printed,
             uint256 timestampLock,
             bytes32 cryptedOrderId,
@@ -197,7 +194,7 @@ contract Printer is Ownable {
     {
         NFT memory nft = _nftByUser[user];
         return
-            (nft.imageAddress, nft.imageId, nft.printId, nft.printed, nft.timestampLock, nft.cryptedOrderId, nft.owner);
+            (nft.imageAddress, nft.imageId, nft.printed, nft.timestampLock, nft.cryptedOrderId, nft.owner);
     }
 
     function getLockingTime() external pure returns (uint256) {

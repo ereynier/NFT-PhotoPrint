@@ -35,14 +35,14 @@ contract PrinterTest is Test {
         vm.prank(USER);
         mockImage.approve(address(printer), 0);
         vm.prank(OWNER);
-        printer.lock(address(mockImage), 0, 1, USER);
+        printer.lock(address(mockImage), 0, USER);
     }
 
     /* ===== test function lock ===== */
 
     function testLockRevertIfNotOwner() public {
         vm.expectRevert("Ownable: caller is not the owner");
-        printer.lock(address(mockImage), 0, 1, USER);
+        printer.lock(address(mockImage), 0, USER);
     }
 
     function testLockRevertIfATokenAlreadyLocked() public {
@@ -53,7 +53,7 @@ contract PrinterTest is Test {
         mockImage.approve(address(printer), 1);
         vm.prank(OWNER);
         vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NFTAlreadyLocked.selector, USER));
-        printer.lock(address(mockImage), 1, 1, USER);
+        printer.lock(address(mockImage), 1, USER);
     }
 
     function testLockRevertIfTokenNotApproved() public {
@@ -61,7 +61,7 @@ contract PrinterTest is Test {
         mockImage.safeMint(USER);
         vm.prank(OWNER);
         vm.expectRevert(abi.encodeWithSelector(Printer.Printer__NotApproved.selector, address(mockImage), 0));
-        printer.lock(address(mockImage), 0, 1, USER);
+        printer.lock(address(mockImage), 0, USER);
     }
 
     function testLockGood() public {
@@ -72,13 +72,12 @@ contract PrinterTest is Test {
         vm.startPrank(OWNER);
         vm.expectEmit(true, false, false, true);
         emit ImageLocked(USER, address(mockImage), 0);
-        printer.lock(address(mockImage), 0, 1, USER);
+        printer.lock(address(mockImage), 0, USER);
         vm.stopPrank();
-        (address imageAddress, uint256 imageId, uint256 printId, bool printed, uint256 timestampLock,,) =
+        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock,,) =
             printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
-        assertEq(printId, 1);
         assertEq(printed, false);
         assertEq(timestampLock, 0);
         vm.prank(OWNER);
@@ -86,11 +85,10 @@ contract PrinterTest is Test {
         vm.prank(OWNER);
         mockImage.approve(address(printer), 1);
         vm.prank(OWNER);
-        printer.lock(address(mockImage), 1, 2, OWNER);
-        (imageAddress, imageId, printId, printed, timestampLock,,) = printer.getImageLockedByUser(OWNER);
+        printer.lock(address(mockImage), 1, OWNER);
+        (imageAddress, imageId, printed, timestampLock,,) = printer.getImageLockedByUser(OWNER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 1);
-        assertEq(printId, 2);
         assertEq(printed, false);
         assertEq(timestampLock, 0);
     }
@@ -133,11 +131,10 @@ contract PrinterTest is Test {
         mintAndLockInPrinter();
         vm.prank(OWNER);
         printer.unlock(USER);
-        (address imageAddress, uint256 imageId, uint256 printId, bool printed, uint256 timestampLock,,) =
+        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock,,) =
             printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(0));
         assertEq(imageId, 0);
-        assertEq(printId, 0);
         assertEq(printed, false);
         assertEq(timestampLock, 0);
     }
@@ -187,14 +184,12 @@ contract PrinterTest is Test {
         (
             address imageAddress,
             uint256 imageId,
-            uint256 printId,
             bool printed,
             uint256 timestampLock,
             bytes32 cryptedOrderId,
         ) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
-        assertEq(printId, 1);
         assertEq(printed, false);
         assertEq(timestampLock, block.timestamp);
         assertEq(cryptedOrderId, bytes32("test"));
@@ -250,24 +245,21 @@ contract PrinterTest is Test {
         (
             address imageAddress,
             uint256 imageId,
-            uint256 printId,
             bool printed,
             uint256 timestampLock,
             bytes32 cryptedOrderId,
         ) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
-        assertEq(printId, 1);
         assertEq(printed, false);
         assertEq(timestampLock, block.timestamp);
         assertEq(cryptedOrderId, bytes32("test"));
         vm.warp(block.timestamp + LOCKING_TIME + 1);
         vm.prank(OWNER);
         printer.clearOrderId(USER);
-        (imageAddress, imageId, printId, printed, timestampLock, cryptedOrderId,) = printer.getImageLockedByUser(USER);
+        (imageAddress, imageId, printed, timestampLock, cryptedOrderId,) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
-        assertEq(printId, 1);
         assertEq(printed, false);
         assertEq(timestampLock, 0);
         assertEq(cryptedOrderId, bytes32(0));
@@ -304,7 +296,7 @@ contract PrinterTest is Test {
         emit CertificateMinted(USER, address(mockCertificate), 0);
         printer.mintCertificate(USER, address(mockCertificate));
         assertEq(mockCertificate.ownerOf(0), USER);
-        (address imageAddress,,, bool printed,,,) = printer.getImageLockedByUser(USER);
+        (address imageAddress,, bool printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(0));
         assertEq(printed, false);
     }
@@ -348,11 +340,11 @@ contract PrinterTest is Test {
         mintAndLockInPrinter();
         vm.prank(OWNER);
         printer.confirmOrder(USER, bytes32("test"));
-        (,,, bool printed,,,) = printer.getImageLockedByUser(USER);
+        (,, bool printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(printed, false);
         vm.prank(ADMIN);
         printer.setPrinted(USER);
-        (,,, printed,,,) = printer.getImageLockedByUser(USER);
+        (,, printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(printed, true);
     }
 
@@ -374,7 +366,6 @@ contract PrinterTest is Test {
         (
             address imageAddress,
             uint256 imageId,
-            uint256 printId,
             bool printed,
             uint256 timestampLock,
             bytes32 cryptedOrderId,
@@ -382,7 +373,6 @@ contract PrinterTest is Test {
         ) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(0));
         assertEq(imageId, 0);
-        assertEq(printId, 0);
         assertEq(printed, false);
         assertEq(timestampLock, 0);
         assertEq(cryptedOrderId, bytes32(0));
@@ -395,7 +385,6 @@ contract PrinterTest is Test {
         (
             address imageAddress,
             uint256 imageId,
-            uint256 printId,
             bool printed,
             uint256 timestampLock,
             bytes32 cryptedOrderId,
@@ -403,18 +392,16 @@ contract PrinterTest is Test {
         ) = printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
-        assertEq(printId, 1);
         assertEq(printed, false);
         assertEq(timestampLock, 0);
         assertEq(cryptedOrderId, bytes32(0));
         assertEq(owner, USER);
         vm.prank(OWNER);
         printer.confirmOrder(USER, bytes32("test"));
-        (imageAddress, imageId, printId, printed, timestampLock, cryptedOrderId, owner) =
+        (imageAddress, imageId, printed, timestampLock, cryptedOrderId, owner) =
             printer.getImageLockedByUser(USER);
         assertEq(imageAddress, address(mockImage));
         assertEq(imageId, 0);
-        assertEq(printId, 1);
         assertEq(printed, false);
         assertEq(timestampLock, block.timestamp);
         assertEq(cryptedOrderId, bytes32("test"));

@@ -24,6 +24,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     error ImageManager__TransferFailed(address tokenAddress, address to);
     error ImageManager__NoTokenLocked(address user);
     error ImageManager__TokensLengthDontMatchPriceFeeds();
+    error ImageManager__NotEnoughTokenAllowed(address tokenAddress, uint256 amount, address from);
 
     /* ========== Types ========== */
 
@@ -43,7 +44,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     mapping(address token => address priceFeed) _priceFeeds;
     address[] private _allowedTokens;
 
-    mapping(address image => uint256 priceInUsd) _imagePrices;
+    mapping(address image => uint256 priceInUsdInWei) _imagePricesInUsdInWei;
     mapping(address image => uint256 printId) _printIds;
 
     uint256 private constant ADDITIONAL_FEED_PRECISION = 1e10;
@@ -100,8 +101,12 @@ contract ImageManager is Ownable, ReentrancyGuard {
             revert ImageManager__MaxSupplyReached(imageAddress);
         }
 
-        uint256 price = _imagePrices[imageAddress];
+        uint256 price = _imagePricesInUsdInWei[imageAddress];
         uint256 amount = _getTokenAmountFromUsd(token, price);
+        if (IERC20(token).allowance(msg.sender, address(this)) < amount || IERC20(token).balanceOf(msg.sender) < amount) {
+            revert ImageManager__NotEnoughTokenAllowed(token, amount, msg.sender);
+        }
+        
         bool success = IERC20(token).transferFrom(msg.sender, address(this), amount);
         if (!success) {
             revert ImageManager__TransferFailed(token, address(this));
@@ -115,7 +120,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         if (msg.sender != image.ownerOf(tokenId)) {
             revert ImageManager__NotTokenOwner(imageAddress, tokenId);
         }
-        _printer.lock(imageAddress, tokenId, _printIds[imageAddress], msg.sender);
+        _printer.lock(imageAddress, tokenId, msg.sender);
     }
 
     function unlockImage() external nonReentrant {
@@ -131,7 +136,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     }
 
     function mintCertificate(address user) external nonReentrant {
-        (address imageAddress,,,,,,) = _printer.getImageLockedByUser(user);
+        (address imageAddress,,,,,) = _printer.getImageLockedByUser(user);
         if (imageAddress == address(0)) {
             revert ImageManager__NoTokenLocked(user);
         }
@@ -157,7 +162,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         _imageToCertificate[address(image)] = address(certificate);
         _certificateToImage[address(certificate)] = address(image);
         _isImage[address(image)] = true;
-        _imagePrices[address(image)] = _priceInUsd;
+        _imagePricesInUsdInWei[address(image)] = _priceInUsd;
         _printIds[address(image)] = _printId;
         emit imageCreated(address(image));
         return address(image);
@@ -198,16 +203,20 @@ contract ImageManager is Ownable, ReentrancyGuard {
     /* ========== Private functions ========== */
     /* ========== Internal & private view / pure functions ========== */
 
-    function _getTokenAmountFromUsd(address token, uint256 usdAmountInWei) private view returns (uint256) {
+    function _getTokenAmountFromUsd(address token, uint256 usdAmountInWei) private view onlyAllowedToken(token) returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
-        return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION);
+        return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION); // 1e8 * 1e18 / (1e8 * 1e10) = 
     }
 
     /* ========== External & public view / pure functions ========== */
 
     function getPrinterAddress() external view returns (address) {
         return address(_printer);
+    }
+
+    function getPrintId(address imageAddress) external view returns (uint256) {
+        return _printIds[imageAddress];
     }
 
     function getImagesAddresses() external view returns (address[] memory) {
@@ -222,8 +231,8 @@ contract ImageManager is Ownable, ReentrancyGuard {
         return _certificateToImage[certificateAddress];
     }
 
-    function getImagePrice(address imageAddress) external view returns (uint256) {
-        return _imagePrices[imageAddress];
+    function getImagePriceInUsdInWei(address imageAddress) external view returns (uint256) {
+        return _imagePricesInUsdInWei[imageAddress];
     }
 
     function getAllowedTokens() external view returns (address[] memory) {
@@ -232,5 +241,9 @@ contract ImageManager is Ownable, ReentrancyGuard {
 
     function getIsImage(address imageAddress) external view returns (bool) {
         return _isImage[imageAddress];
+    }
+
+    function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) external view returns (uint256) {
+        return _getTokenAmountFromUsd(token, usdAmountInWei);
     }
 }
