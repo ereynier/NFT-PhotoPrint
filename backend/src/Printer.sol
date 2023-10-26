@@ -175,12 +175,14 @@ contract Printer is Ownable, ReentrancyGuard {
     }
 
     function _mintCertificate(address user, address certificate) internal {
+        address imageAddress = _nftByUser[user].imageAddress;
+        uint256 imageId = _nftByUser[user].imageId;
         // delete nftByUser[user]
         delete _nftByUser[user];
         // mint certificate with nftByUser[user] specs to user
-        Certificate(certificate).safeMint(user, _nftByUser[user].imageId);
+        Certificate(certificate).safeMint(user, imageId);
         // burn nftByUser[user]
-        Image(_nftByUser[user].imageAddress).burn(_nftByUser[user].imageId);
+        Image(imageAddress).burn(imageId);
     }
 
     /* ========== Private functions ========== */

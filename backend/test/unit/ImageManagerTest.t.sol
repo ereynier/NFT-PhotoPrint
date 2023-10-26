@@ -268,7 +268,7 @@ contract ImageManagerTest is Test {
     function testMintCertificateRevertIfNoTokenLocked() public {
         vm.startPrank(USER_1);
         vm.expectRevert(abi.encodeWithSelector(ImageManager.ImageManager__NoTokenLocked.selector, USER_1));
-        imageManager.mintCertificate(USER_1);
+        imageManager.mintCertificate();
         vm.stopPrank();
     }
 
@@ -287,7 +287,7 @@ contract ImageManagerTest is Test {
         vm.prank(ADMIN);
         Printer(printerAddress).setPrinted(USER_1);
         vm.prank(USER_1);
-        imageManager.mintCertificate(USER_1);
+        imageManager.mintCertificate();
         (
             address imageAddress_,
             uint256 imageId_,

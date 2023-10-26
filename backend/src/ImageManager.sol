@@ -135,13 +135,13 @@ contract ImageManager is Ownable, ReentrancyGuard {
         _printer.clearOrderId(msg.sender);
     }
 
-    function mintCertificate(address user) external nonReentrant {
-        (address imageAddress,,,,,) = _printer.getImageLockedByUser(user);
+    function mintCertificate() external nonReentrant {
+        (address imageAddress,,,,,) = _printer.getImageLockedByUser(msg.sender);
         if (imageAddress == address(0)) {
-            revert ImageManager__NoTokenLocked(user);
+            revert ImageManager__NoTokenLocked(msg.sender);
         }
         address certificate = _imageToCertificate[imageAddress];
-        _printer.mintCertificate(user, certificate);
+        _printer.mintCertificate(msg.sender, certificate);
     }
 
     // onlyOwner functions

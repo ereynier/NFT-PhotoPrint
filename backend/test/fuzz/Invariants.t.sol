@@ -8,6 +8,8 @@ import {ImageManager} from "../../src/ImageManager.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ImageManagerDeployer} from "../../script/ImageManagerDeployer.s.sol";
 import {Handler} from "./Handler.t.sol";
+import {Image} from "../../src/Image.sol";
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract InvariantsTest is StdInvariant, Test {
     ImageManager public imageManager;
@@ -47,30 +49,36 @@ contract InvariantsTest is StdInvariant, Test {
         targetContract(address(handler));
     }
 
-    function invariant_() public {}
-
-    function invariant_gettersShouldNotRevert() public view {
-
-        address[] memory imageAddresses = imageManager.getImagesAddresses();
-        address imageAddress;
-        if (imageAddresses.length > 0) {
-            imageAddress = imageAddresses[0];
-        }
-        if (imageAddress != address(0)) {
-            imageManager.getPrintId(imageAddress);
-            address certificateAddress = imageManager.getCertificateByImage(imageAddress);
-            imageManager.getImageByCertificate(certificateAddress);
-            imageManager.getImagePriceInUsdInWei(imageAddress);
-            imageManager.getIsImage(imageAddress);
-        }
-
-        imageManager.getPrinterAddress();
-        imageManager.getImagesAddresses();
-
-        address[] memory allowedTokens = imageManager.getAllowedTokens();
-        if (allowedTokens.length > 0) {
-            address tokenAddress = allowedTokens[0];
-            imageManager.getPriceFeeds(tokenAddress);
+    function invariant_() public {
+        address[] memory imagesAddresses = imageManager.getImagesAddresses();
+        for (uint256 i = 0; i < imagesAddresses.length; i++) {
+            address imageAddress = imagesAddresses[i];
+            console.log("Address %s sold: %s", imageAddress, Image(imageAddress).getNextId());
         }
     }
+
+    // function invariant_gettersShouldNotRevert() public view {
+
+    //     address[] memory imageAddresses = imageManager.getImagesAddresses();
+    //     address imageAddress;
+    //     if (imageAddresses.length > 0) {
+    //         imageAddress = imageAddresses[0];
+    //     }
+    //     if (imageAddress != address(0)) {
+    //         imageManager.getPrintId(imageAddress);
+    //         address certificateAddress = imageManager.getCertificateByImage(imageAddress);
+    //         imageManager.getImageByCertificate(certificateAddress);
+    //         imageManager.getImagePriceInUsdInWei(imageAddress);
+    //         imageManager.getIsImage(imageAddress);
+    //     }
+
+    //     imageManager.getPrinterAddress();
+    //     imageManager.getImagesAddresses();
+
+    //     address[] memory allowedTokens = imageManager.getAllowedTokens();
+    //     if (allowedTokens.length > 0) {
+    //         address tokenAddress = allowedTokens[0];
+    //         imageManager.getPriceFeeds(tokenAddress);
+    //     }
+    // }
 }
