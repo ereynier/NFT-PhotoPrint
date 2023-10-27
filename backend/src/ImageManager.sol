@@ -206,7 +206,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
     function _getTokenAmountFromUsd(address token, uint256 usdAmountInWei) private view onlyAllowedToken(token) returns (uint256) {
         AggregatorV3Interface priceFeed = AggregatorV3Interface(_priceFeeds[token]);
         (, int256 price,,,) = priceFeed.staleCheckLatestRoundData();
-        return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION); // 1e8 * 1e18 / (1e8 * 1e10) = 1e18
+        return (usdAmountInWei * PRECISION) / (uint256(price) * ADDITIONAL_FEED_PRECISION); // 1e18 * 1e18 / (1e8 * 1e10) = 1e18
     }
 
     /* ========== External & public view / pure functions ========== */
