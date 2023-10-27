@@ -17,7 +17,8 @@ contract Certificate is ERC721, Ownable {
     /* ========== State variables ========== */
     mapping(uint256 mintedTokens => bool minted) private _mintedTokens;
     uint256 private immutable _maxSupply;
-    string private baseURI;
+    string public baseURI;
+    uint256 private _totalMinted;
 
     /* ========== Events ========== */
     /* ========== Modifiers ========== */
@@ -49,6 +50,7 @@ contract Certificate is ERC721, Ownable {
             revert Certificate__TokenAlreadyMinted(tokenId);
         }
         _mintedTokens[tokenId] = true;
+        _totalMinted++;
         _safeMint(to, tokenId);
     }
 
@@ -58,5 +60,9 @@ contract Certificate is ERC721, Ownable {
     /* ========== External & public view / pure functions ========== */
     function getMaxSupply() external view returns (uint256) {
         return _maxSupply;
+    }
+
+    function getTotalMinted() external view returns (uint256) {
+        return _totalMinted;
     }
 }

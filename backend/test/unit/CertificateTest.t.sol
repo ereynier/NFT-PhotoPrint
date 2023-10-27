@@ -53,4 +53,14 @@ contract CertificateTest is Test {
     function testGetMaxSupply() public {
         assertEq(certificate.getMaxSupply(), MAX_SUPPLY);
     }
+
+    function testGetTotalMinted() public {
+        assertEq(certificate.getTotalMinted(), 0);
+        vm.prank(OWNER);
+        certificate.safeMint(USER, 10);
+        assertEq(certificate.getTotalMinted(), 1);
+        vm.prank(OWNER);
+        certificate.safeMint(USER, 42);
+        assertEq(certificate.getTotalMinted(), 2);
+    }
 }
