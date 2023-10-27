@@ -37,11 +37,14 @@ contract ImageManagerTest is Test {
     address[] public allowedTokens;
     address[] public priceFeeds;
 
-    uint256 public VALUE_IN_USD = 100e8;
+    uint256 public VALUE_IN_USD = 100 ether;
     uint256 public MAX_SUPPLY = 20;
     uint256 public LOCKING_TIME = 7 days;
 
-    uint256 public STARTING_ERC20_BALANCE = 100 ether;
+    uint256 public MUMBAI_CHAINID = 80001;
+    uint256 public POLYGON_CHAINID = 137;
+
+    uint256 public STARTING_ERC20_BALANCE = 5000 ether;
 
     event ImageCreated(address imageAddress);
 
@@ -430,20 +433,36 @@ contract ImageManagerTest is Test {
 
     function testUpdateTokensAllowedGood() public {
         address[] memory allowedTokens_ = imageManager.getAllowedTokens();
-        assertEq(allowedTokens_.length, 5);
+        address tokenA;
+        address tokenB;
+        address tokenAUsdPriceFeed;
+        address tokenBUsdPriceFeed;
+        if (block.chainid == MUMBAI_CHAINID) {
+            assertEq(allowedTokens_.length, 3);
+            tokenA = wbtc;
+            tokenB = dai;
+            tokenAUsdPriceFeed = wbtcUsdPriceFeed;
+            tokenBUsdPriceFeed = daiUsdPriceFeed;
+        } else {
+            assertEq(allowedTokens_.length, 5);
+            tokenA = wbtc;
+            tokenB = usdc;
+            tokenAUsdPriceFeed = wbtcUsdPriceFeed;
+            tokenBUsdPriceFeed = usdcUsdPriceFeed;
+        }
         address[] memory tokens = new address[](2);
-        tokens[0] = wbtc;
-        tokens[1] = usdc;
+        tokens[0] = tokenA;
+        tokens[1] = tokenB;
         address[] memory feeds = new address[](2);
-        feeds[0] = wbtcUsdPriceFeed;
-        feeds[1] = usdcUsdPriceFeed;
+        feeds[0] = tokenAUsdPriceFeed;
+        feeds[1] = tokenBUsdPriceFeed;
         vm.startPrank(OWNER);
         imageManager.updateTokensAllowed(tokens, feeds);
         vm.stopPrank();
-        assertEq(imageManager.getAllowedTokens()[0], wbtc);
-        assertEq(imageManager.getPriceFeeds(wbtc), wbtcUsdPriceFeed);
-        assertEq(imageManager.getAllowedTokens()[1], usdc);
-        assertEq(imageManager.getPriceFeeds(usdc), usdcUsdPriceFeed);
+        assertEq(imageManager.getAllowedTokens()[0], tokenA);
+        assertEq(imageManager.getPriceFeeds(tokenA), tokenAUsdPriceFeed);
+        assertEq(imageManager.getAllowedTokens()[1], tokenB);
+        assertEq(imageManager.getPriceFeeds(tokenB), tokenBUsdPriceFeed);
         assertEq(imageManager.getAllowedTokens().length, 2);
     }
 
@@ -461,9 +480,11 @@ contract ImageManagerTest is Test {
 
     function testGetImagesAddresses() public {
         vm.prank(OWNER);
-        address imageAddress_1 = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        address imageAddress_1 =
+            imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
         vm.prank(OWNER);
-        address imageAddress_2 = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
+        address imageAddress_2 =
+            imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
         assertEq(imageManager.getImagesAddresses().length, 2);
         assertEq(imageManager.getImagesAddresses()[0], imageAddress_1);
         assertEq(imageManager.getImagesAddresses()[1], imageAddress_2);
@@ -493,12 +514,19 @@ contract ImageManagerTest is Test {
 
     function testGetAllowedTokens() public {
         address[] memory allowedTokens_ = imageManager.getAllowedTokens();
-        assertEq(allowedTokens_.length, 5);
-        assertEq(allowedTokens_[0], wbtc);
-        assertEq(allowedTokens_[1], weth);
-        assertEq(allowedTokens_[2], dai);
-        assertEq(allowedTokens_[3], usdc);
-        assertEq(allowedTokens_[4], usdt);
+        if (block.chainid == MUMBAI_CHAINID) {
+            assertEq(allowedTokens_.length, 3);
+            assertEq(allowedTokens_[0], wbtc);
+            assertEq(allowedTokens_[1], weth);
+            assertEq(allowedTokens_[2], dai);
+        } else {
+            assertEq(allowedTokens_.length, 5);
+            assertEq(allowedTokens_[0], wbtc);
+            assertEq(allowedTokens_[1], weth);
+            assertEq(allowedTokens_[2], dai);
+            assertEq(allowedTokens_[3], usdc);
+            assertEq(allowedTokens_[4], usdt);
+        }
     }
 
     function testGetPriceFeeds() public {
@@ -516,11 +544,22 @@ contract ImageManagerTest is Test {
         assertEq(imageManager.getIsImage(OWNER), false);
     }
 
-    function testGetTokenAmountFromUsd() public {
-        MockV3Aggregator(usdcUsdPriceFeed).updateAnswer(1e8);
-        assertEq(imageManager.getTokenAmountFromUsd(usdc, 1e8), 1e8);
-        MockV3Aggregator(usdcUsdPriceFeed).updateAnswer(1e10);
-        assertEq(imageManager.getTokenAmountFromUsd(usdc, 1e8), 1e6);
+    function testGetTokenAmountFromUsdRevertIfTokenNotAllowed() public {
+        vm.expectRevert(
+            abi.encodeWithSelector(ImageManager.ImageManager__TokenNotAllowed.selector, makeAddr("notAllowedToken"))
+        );
+        imageManager.getTokenAmountFromUsd(makeAddr("notAllowedToken"), 1 ether);
     }
 
+    function testGetTokenAmountFromUsdGood() public {
+        if (block.chainid == MUMBAI_CHAINID || block.chainid == POLYGON_CHAINID) {
+            assertGt(imageManager.getTokenAmountFromUsd(wbtc, 1e18), 0);
+            assertGt(imageManager.getTokenAmountFromUsd(weth, 1e18), 0);
+        } else {
+            MockV3Aggregator(usdcUsdPriceFeed).updateAnswer(1e8);
+            assertEq(imageManager.getTokenAmountFromUsd(usdc, 1e18), 1e18);
+            MockV3Aggregator(usdcUsdPriceFeed).updateAnswer(1e10);
+            assertEq(imageManager.getTokenAmountFromUsd(usdc, 1e18), 1e16);
+        }
+    }
 }
