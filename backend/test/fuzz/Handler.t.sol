@@ -34,6 +34,9 @@ contract Handler is Test {
 
     address printer;
 
+    uint256 public MUMBAI_CHAINID = 80001;
+    uint256 public POLYGON_CHAINID = 137;
+
     mapping(address image => mapping(uint256 id => bool)) haveToken;
 
     constructor(ImageManager _imageManager, HelperConfig _config) {
@@ -160,6 +163,19 @@ contract Handler is Test {
     }
 
     // /* ===== Helper Functions ===== */
+
+    // function updateTimestamp() public {
+    //     if (block.chainid != MUMBAI_CHAINID && block.chainid != POLYGON_CHAINID) {
+    //         return;
+    //     }
+    //     vm.warp(block.timestamp + 3600 * 12);
+    //     // address[] memory allowedTokens = imageManager.getAllowedTokens();
+    //     // for (uint256 i = 0; i < allowedTokens.length; i++) {
+    //     //     address priceFeed = imageManager.getPriceFeeds(allowedTokens[i]);
+    //     //     (, int256 price,,,) = MockV3Aggregator(priceFeed).latestRoundData();
+    //     //     MockV3Aggregator(priceFeed).updateAnswer(price);
+    //     // }
+    // }
 
     function _getAllowedTokenFromSeed(uint256 tokenSeed) private view returns (address) {
         uint256 randomSeed = tokenSeed % tokenAddresses.length;

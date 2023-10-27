@@ -9,6 +9,7 @@ import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {ImageManagerDeployer} from "../../script/ImageManagerDeployer.s.sol";
 import {Handler} from "./Handler.t.sol";
 import {Image} from "../../src/Image.sol";
+import {Certificate} from "../../src/Certificate.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract InvariantsTest is StdInvariant, Test {
@@ -49,36 +50,42 @@ contract InvariantsTest is StdInvariant, Test {
         targetContract(address(handler));
     }
 
-    function invariant_() public {
+    function invariant_ImageAndCertificateShouldNeverReduce() public view {
         address[] memory imagesAddresses = imageManager.getImagesAddresses();
         for (uint256 i = 0; i < imagesAddresses.length; i++) {
             address imageAddress = imagesAddresses[i];
             console.log("Address %s sold: %s", imageAddress, Image(imageAddress).getNextId());
+            address certificateAddress = imageManager.getCertificateByImage(imageAddress);
+            console.log("Certificate address: %s, minted: %s", certificateAddress, Certificate(certificateAddress).getTotalMinted());
         }
     }
 
-    // function invariant_gettersShouldNotRevert() public view {
+    function invariant_UsdOfOwnerPlusImageManagerShouldBeEqualToTotalSoldPrice() public view {
 
-    //     address[] memory imageAddresses = imageManager.getImagesAddresses();
-    //     address imageAddress;
-    //     if (imageAddresses.length > 0) {
-    //         imageAddress = imageAddresses[0];
-    //     }
-    //     if (imageAddress != address(0)) {
-    //         imageManager.getPrintId(imageAddress);
-    //         address certificateAddress = imageManager.getCertificateByImage(imageAddress);
-    //         imageManager.getImageByCertificate(certificateAddress);
-    //         imageManager.getImagePriceInUsdInWei(imageAddress);
-    //         imageManager.getIsImage(imageAddress);
-    //     }
+    }
 
-    //     imageManager.getPrinterAddress();
-    //     imageManager.getImagesAddresses();
+    function invariant_gettersShouldNotRevert() public view {
 
-    //     address[] memory allowedTokens = imageManager.getAllowedTokens();
-    //     if (allowedTokens.length > 0) {
-    //         address tokenAddress = allowedTokens[0];
-    //         imageManager.getPriceFeeds(tokenAddress);
-    //     }
-    // }
+        address[] memory imageAddresses = imageManager.getImagesAddresses();
+        address imageAddress;
+        if (imageAddresses.length > 0) {
+            imageAddress = imageAddresses[0];
+        }
+        if (imageAddress != address(0)) {
+            imageManager.getPrintId(imageAddress);
+            address certificateAddress = imageManager.getCertificateByImage(imageAddress);
+            imageManager.getImageByCertificate(certificateAddress);
+            imageManager.getImagePriceInUsdInWei(imageAddress);
+            imageManager.getIsImage(imageAddress);
+        }
+
+        imageManager.getPrinterAddress();
+        imageManager.getImagesAddresses();
+
+        address[] memory allowedTokens = imageManager.getAllowedTokens();
+        if (allowedTokens.length > 0) {
+            address tokenAddress = allowedTokens[0];
+            imageManager.getPriceFeeds(tokenAddress);
+        }
+    }
 }
