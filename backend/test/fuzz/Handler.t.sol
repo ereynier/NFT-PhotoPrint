@@ -39,6 +39,8 @@ contract Handler is Test {
 
     mapping(address image => mapping(uint256 id => bool)) haveToken;
 
+    mapping(bytes32 nft => bool) public nftPrinted;
+
     constructor(ImageManager _imageManager, HelperConfig _config) {
         imageManager = _imageManager;
         config = _config;
@@ -153,28 +155,29 @@ contract Handler is Test {
 
     function setPrinted() external {
         address user = address(this);
-        (address imageAddress,, bool printed, uint256 timestampLock,,) = Printer(printer).getImageLockedByUser(user);
+        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock,,) = Printer(printer).getImageLockedByUser(user);
         if (imageAddress == address(0) || printed || timestampLock == 0) {
             return;
         }
         address admin = Printer(printer).getAdminAddress();
         vm.prank(admin);
         Printer(printer).setPrinted(user);
+        if (nftPrinted[sha256(abi.encodePacked(imageAddress, imageId))]) {
+            revert("NFT already printed");
+        }
+        nftPrinted[sha256(abi.encodePacked(imageAddress, imageId))] = true;
     }
 
     // /* ===== Helper Functions ===== */
 
     // function updateTimestamp() public {
-    //     if (block.chainid != MUMBAI_CHAINID && block.chainid != POLYGON_CHAINID) {
-    //         return;
-    //     }
     //     vm.warp(block.timestamp + 3600 * 12);
-    //     // address[] memory allowedTokens = imageManager.getAllowedTokens();
-    //     // for (uint256 i = 0; i < allowedTokens.length; i++) {
-    //     //     address priceFeed = imageManager.getPriceFeeds(allowedTokens[i]);
-    //     //     (, int256 price,,,) = MockV3Aggregator(priceFeed).latestRoundData();
-    //     //     MockV3Aggregator(priceFeed).updateAnswer(price);
-    //     // }
+    //     address[] memory allowedTokens = imageManager.getAllowedTokens();
+    //     for (uint256 i = 0; i < allowedTokens.length; i++) {
+    //         address priceFeed = imageManager.getPriceFeeds(allowedTokens[i]);
+    //         (, int256 price,,,) = MockV3Aggregator(priceFeed).latestRoundData();
+    //         MockV3Aggregator(priceFeed).updateAnswer(price);
+    //     }
     // }
 
     function _getAllowedTokenFromSeed(uint256 tokenSeed) private view returns (address) {

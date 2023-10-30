@@ -11,6 +11,7 @@ import {Handler} from "./Handler.t.sol";
 import {Image} from "../../src/Image.sol";
 import {Certificate} from "../../src/Certificate.sol";
 import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
+import {ERC20Mock} from "@openzeppelin/contracts/mocks/ERC20Mock.sol";
 
 contract InvariantsTest is StdInvariant, Test {
     ImageManager public imageManager;
@@ -50,18 +51,47 @@ contract InvariantsTest is StdInvariant, Test {
         targetContract(address(handler));
     }
 
-    function invariant_ImageAndCertificateShouldNeverReduce() public view {
+
+    uint256[] public totalNfts;
+
+    function invariant_ImagePlusCertificateShouldNeverReduce() public {
         address[] memory imagesAddresses = imageManager.getImagesAddresses();
         for (uint256 i = 0; i < imagesAddresses.length; i++) {
             address imageAddress = imagesAddresses[i];
-            console.log("Address %s sold: %s", imageAddress, Image(imageAddress).getNextId());
             address certificateAddress = imageManager.getCertificateByImage(imageAddress);
-            console.log("Certificate address: %s, minted: %s", certificateAddress, Certificate(certificateAddress).getTotalMinted());
+            uint256 imagesCount = Image(imageAddress).balanceOf(address(imageManager)) + Image(imageAddress).balanceOf(address(handler));
+            uint256 certificatesCount = Certificate(certificateAddress).balanceOf(address(handler));
+            uint256 totalNft = imagesCount + certificatesCount;
+            if (totalNfts.length <= i) {
+                totalNfts.push(totalNft);
+            } else {
+                assertGe(totalNft, totalNfts[i]);
+                totalNfts[i] = totalNft;
+            }
+            // console.log("Total NFTs %s: %s", i, totalNfts[i]);
+            // console.log("Address %s sold: %s", imageAddress, Image(imageAddress).getNextId());
+            // console.log("Certificate address: %s, minted: %s", certificateAddress, Certificate(certificateAddress).getTotalMinted());
         }
     }
 
-    function invariant_UsdOfOwnerPlusImageManagerShouldBeEqualToTotalSoldPrice() public view {
+    function invariant_UsdOfOwnerPlusImageManagerShouldBeGreaterOrEqualToTotalSoldPrice() public {
+        uint256 totalSoldInUsd = 0;
+        address[] memory imagesAddresses = imageManager.getImagesAddresses();
+        for (uint256 i = 0; i < imagesAddresses.length; i++) {
+            address imageAddress = imagesAddresses[i];
+            totalSoldInUsd = totalSoldInUsd + Image(imageAddress).getNextId() * imageManager.getImagePriceInUsdInWei(imageAddress);
+        }
 
+        uint256 totalBalanceInUsd = 0;
+        address[] memory allowedTokens = imageManager.getAllowedTokens();
+        for (uint256 i = 0; i < allowedTokens.length; i++) {
+            address priceFeed = imageManager.getPriceFeeds(allowedTokens[i]);
+            uint256 ownerBalance = ERC20Mock(allowedTokens[i]).balanceOf(owner);
+            uint256 imageManagerBalance = ERC20Mock(allowedTokens[i]).balanceOf(address(imageManager));
+            (, int256 price,,,) = MockV3Aggregator(priceFeed).latestRoundData();
+            totalBalanceInUsd = totalBalanceInUsd + (ownerBalance + imageManagerBalance) * uint256(price) * 1e10 / 1e18;
+        }
+        assertGe(totalBalanceInUsd / 1e18 + 1, totalSoldInUsd / 1e18);
     }
 
     function invariant_gettersShouldNotRevert() public view {
