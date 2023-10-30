@@ -6,7 +6,7 @@ via_ir = true
 solc_version = "0.8.18"
 
 [invariant]
-runs = 5
+runs = 10
 depth = 1024
 fail_on_revert = true
 
