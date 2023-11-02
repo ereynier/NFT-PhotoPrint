@@ -37,7 +37,7 @@ const Navbar = () => {
         <nav ref={ref} className={`w-full bg-white bg-opacity-85 border-gray-200 shadow-md top-0 z-50 navbar sticky ${/*translate*/""} transition-transform duration-300`}>
             <div className="flex flex-wrap items-center justify-between mx-4 sm:mx-20 p-2">
                 <Link href="/" target='' className="flex flex-col items-start">
-                    <span className={` self-start text-3xl font-semibold whitespace-nowrap `}>E.R Photos</span>
+                    <span className={` self-start text-3xl font-semibold whitespace-nowrap `}>NFT Prints</span>
                 </Link>
                 <button onClick={handleToggleMenu} data-collapse-toggle="navbar-default" type="button" className="inline-flex items-center p-2 ml-3 text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600" aria-controls="navbar-default" aria-expanded="false">
                     <span className="sr-only">Open main menu</span>
