@@ -50,4 +50,4 @@ ifeq ($(findstring --network polygon,$(ARGS)), --network polygon)
 endif
 
 deploy:
-	@forge script script/DeployDSC.s.sol:DeployDSC $(NETWORK_ARGS)
+	@forge script script/ImageManagerDeployer.s.sol:ImageManagerDeployer $(NETWORK_ARGS)
