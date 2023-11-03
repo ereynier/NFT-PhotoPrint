@@ -33,10 +33,7 @@ const Navbar = () => {
                             <Link href="/" className="block py-2 pl-3 pr-4 text-black font-bold hover:text-neutral-700 rounded md:bg-transparent md:p-0" aria-current="page">Home</Link>
                         </li>
                         <li>
-                            <Link href="/galleries" className="block py-2 pl-3 pr-4 text-black font-bold hover:text-neutral-700 rounded md:bg-transparent md:p-0" aria-current="page">Galleries</Link>
-                        </li>
-                        <li>
-                            <Link href="/contact" className="block py-2 pl-3 pr-4 text-black font-bold hover:text-neutral-700 rounded md:bg-transparent md:p-0" aria-current="page">Contact</Link>
+                            <Link href="/marketplace" className="block py-2 pl-3 pr-4 text-black font-bold hover:text-neutral-700 rounded md:bg-transparent md:p-0" aria-current="page">NFTs</Link>
                         </li>
                         <li>
                             <Link href="/profile" className="block py-2 pl-3 pr-4 text-black font-bold hover:text-neutral-700 rounded md:bg-transparent md:p-0" aria-current="page">Profile</Link>
