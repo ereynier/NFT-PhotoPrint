@@ -1,8 +1,14 @@
+"use client"
+
+import { useAccount } from "wagmi"
 
 export default function Home() {
-    return (
+  
+  const { address, isConnected } = useAccount()
+  
+  return (
       <div className="dark:dark text-foreground bg-background">
-        User
+        {isConnected ? address : 'Not connected'}
       </div>
     )
   }
