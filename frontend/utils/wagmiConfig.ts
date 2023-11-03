@@ -5,6 +5,8 @@ import { chain } from '@/utils/chains'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
+import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
+import { LedgerConnector } from 'wagmi/connectors/ledger'
 
 const ACLHEMY_API_KEY = process.env.ACLHEMY_API_KEY || ""
 
@@ -22,8 +24,37 @@ const { chains, publicClient, webSocketPublicClient } = configureChains(
 
 const config = createConfig({
     autoConnect: false,
+    connectors: [
+        new InjectedConnector({
+            chains,
+            options: {
+                name: 'Injected',
+                shimDisconnect: true,
+            },
+        }),
+        new LedgerConnector({
+            chains,
+            options: {
+                walletConnectVersion: 1,
+                chainId: chain.id
+            },
+        }),
+        new CoinbaseWalletConnector({
+            chains,
+            options: {
+                appName: 'wagmi',
+            },
+        }),
+        new WalletConnectConnector({
+            chains,
+            options: {
+                projectId: '...',
+            },
+        }),
+        new MetaMaskConnector({ chains }),
+    ],
     publicClient,
     webSocketPublicClient,
-  })
+})
 
 export default config;
