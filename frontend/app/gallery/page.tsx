@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import Galleries from "./components/Galleries"
+import Gallery from "./components/Gallery"
 
 export const metadata: Metadata = {
   title: 'NFT Prints | Galleries',
@@ -11,7 +11,7 @@ export default function Home() {
 
     return (
       <div className="text-foreground bg-background">
-        <Galleries />
+        <Gallery />
       </div>
     )
   }

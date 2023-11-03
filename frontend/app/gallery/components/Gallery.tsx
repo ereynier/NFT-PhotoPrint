@@ -6,7 +6,7 @@ import { chain } from '@/utils/chains'
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
-const Galleries = () => {
+const Gallery = () => {
 
     const { data, isError, isLoading } = useContractRead({
         address: CONTRACT_ADDRESS,
@@ -18,8 +18,8 @@ const Galleries = () => {
       console.log(data)
 
   return (
-    <div>Galleries</div>
+    <div>Gallery</div>
   )
 }
 
-export default Galleries
+export default Gallery
