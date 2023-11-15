@@ -23,4 +23,4 @@ contract GenerateTestsImages is Script {
     }
 }
 
-//cast call 0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1 "createImage(string,string,uint256,string,uint256,uint256)" "test" "TEST" 20 "https://res.cloudinary.com/dgi3lqqup/image/upload/v1686559212/samples/food/dessert.jpg" 10000000000000000000 8715
+//cast send -i 0x959922bE3CAee4b8Cd9a407cc3ac1C251C2007B1 "createImage(string,string,uint256,string,uint256,uint256)" "test" "TEST" 20 "https://res.cloudinary.com/dgi3lqqup/image/upload/v1686559212/samples/food/dessert.jpg" 10000000000000000000 8715
