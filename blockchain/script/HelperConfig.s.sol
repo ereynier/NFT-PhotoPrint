@@ -111,7 +111,7 @@ contract HelperConfig is Script {
             dai: address(daiMock),
             usdc: address(usdcMock),
             usdt: address(usdtMock),
-            owner: owner,
+            owner: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
             deployerKey: DEFAULT_ANVIL_KEY
         });
     }

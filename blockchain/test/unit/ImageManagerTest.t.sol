@@ -29,7 +29,7 @@ contract ImageManagerTest is Test {
     address usdc;
     address usdt;
 
-    address public OWNER = 0xaA136C6bDfe6DfC154E9912Ead80F7179c55Bc08;
+    address public OWNER = makeAddr("owner");
     address public ADMIN = makeAddr("admin");
     address public USER_1 = makeAddr("user1");
     address public USER_2 = makeAddr("user2");
@@ -54,6 +54,7 @@ contract ImageManagerTest is Test {
         (wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed,,,,,,,) =
             config.activeNetworkConfig();
         (,,,,, wbtc, weth, dai, usdc, usdt,,) = config.activeNetworkConfig();
+        (,,,,,,,,,, OWNER,) = config.activeNetworkConfig();
         allowedTokens = [wbtc, weth, dai, usdc, usdt];
         priceFeeds = [wbtcUsdPriceFeed, wethUsdPriceFeed, daiUsdPriceFeed, usdcUsdPriceFeed, usdtUsdPriceFeed];
         vm.prank(OWNER);
