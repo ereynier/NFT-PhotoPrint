@@ -1,15 +1,17 @@
-"use client"
+import { Metadata } from "next"
+import Profile from "./components/Profile"
 
-import { useAccount } from "wagmi"
+export const metadata: Metadata = {
+  title: 'NFT Prints | Profile',
+  description: 'User profile page for NFT Prints',
+}
 
 export default function Home() {
   
-  const { address, isConnected } = useAccount()
-  
   return (
-      <div className="dark:dark text-foreground bg-background">
-        {isConnected ? address : 'Not connected'}
-      </div>
-    )
+    <div className="text-foreground bg-background">
+      <Profile />
+    </div>
+  )
   }
   

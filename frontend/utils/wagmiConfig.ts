@@ -35,9 +35,8 @@ const config = createConfig({
         new LedgerConnector({
             chains,
             options: {
-                walletConnectVersion: 1,
-                chainId: chain.id
-            },
+                projectId: "a80bc1990b7064fb02f3f1c48809c4e8"
+            }
         }),
         new CoinbaseWalletConnector({
             chains,
@@ -48,7 +47,7 @@ const config = createConfig({
         new WalletConnectConnector({
             chains,
             options: {
-                projectId: '...',
+                projectId: 'a80bc1990b7064fb02f3f1c48809c4e8',
             },
         }),
         new MetaMaskConnector({ chains }),
