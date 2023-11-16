@@ -250,4 +250,13 @@ contract ImageManager is Ownable, ReentrancyGuard {
     function getTokenAmountFromUsd(address token, uint256 usdAmountInWei) external view returns (uint256) {
         return _getTokenAmountFromUsd(token, usdAmountInWei);
     }
+
+    function getTokensAmountFromImage(address imageAddress) external view returns(uint256[] memory) {
+        uint256[] memory amounts = new uint256[](_allowedTokens.length);
+        for (uint256 i = 0; i < _allowedTokens.length; i++) {
+            amounts[i] = _getTokenAmountFromUsd(_allowedTokens[i], _imagePricesInUsdInWei[imageAddress]);
+        }
+        return amounts;
+    }
+
 }

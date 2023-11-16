@@ -116,6 +116,8 @@ contract InvariantsTest is StdInvariant, Test {
         if (allowedTokens.length > 0) {
             address tokenAddress = allowedTokens[0];
             imageManager.getPriceFeeds(tokenAddress);
+            imageManager.getTokenAmountFromUsd(tokenAddress, 1e18);
+            imageManager.getTokensAmountFromImage(imageAddress);
         }
     }
 }
