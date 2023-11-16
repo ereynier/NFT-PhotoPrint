@@ -37,6 +37,15 @@ snapshot :; forge snapshot
 
 format :; forge fmt
 
+MYDIR = ./src
+SOL_FILES := $(shell find $(MYDIR) -type f -name "*.sol")
+abi:
+	for file in $(notdir $(basename $(SOL_FILES))) ; do \
+		echo $$file ; \
+		mkdir -p ./abi ; \
+		forge build --silent && jq '.abi' ./out/$$file.sol/$$file.json > ./abi/$$file.abi.json ; \
+	done
+
 anvil :; anvil -m 'test test test test test test test test test test test junk' --steps-tracing --block-time 1
 
 NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
