@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { useContractRead } from 'wagmi'
 import ImageMangerABI from "@/utils/abi/ImageManager.json"
 import { chain } from '@/utils/chains'
-import ImageCard from '@/components/ImageCard'
+import BuyCard from './BuyCard'
 
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -53,7 +53,7 @@ const Gallery = () => {
         <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>
           {data.map((imageAddress) => (
             <li key={imageAddress}>
-              <ImageCard imageAddress={imageAddress} />
+              <BuyCard imageAddress={imageAddress} />
             </li>
           ))}
         </ul>
