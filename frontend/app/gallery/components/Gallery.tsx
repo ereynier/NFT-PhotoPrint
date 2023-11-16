@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useState } from 'react'
 import { useContractRead } from 'wagmi'
-import ImageMangerABI from "@/utils/abi/ImageManager.json"
+import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import BuyCard from './BuyCard'
 
@@ -20,7 +20,7 @@ const Gallery = () => {
 
   const { data, isError, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
-    abi: ImageMangerABI,
+    abi: ImageManagerABI,
     functionName: 'getImagesAddresses',
     chainId: chain.id,
     args: []

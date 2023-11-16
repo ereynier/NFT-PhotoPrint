@@ -1,0 +1,65 @@
+[
+  {
+    "inputs": [],
+    "name": "OracleLib__StalePrice",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract AggregatorV3Interface",
+        "name": "",
+        "type": "AggregatorV3Interface"
+      }
+    ],
+    "name": "getTimeout",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "pure",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "contract AggregatorV3Interface",
+        "name": "_priceFeed",
+        "type": "AggregatorV3Interface"
+      }
+    ],
+    "name": "staleCheckLatestRoundData",
+    "outputs": [
+      {
+        "internalType": "uint80",
+        "name": "",
+        "type": "uint80"
+      },
+      {
+        "internalType": "int256",
+        "name": "",
+        "type": "int256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint80",
+        "name": "",
+        "type": "uint80"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

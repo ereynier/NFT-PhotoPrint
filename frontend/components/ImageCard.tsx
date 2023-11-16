@@ -15,9 +15,10 @@ interface Props {
     imageMaxSupply: string
     imageTitle: string
     imageRemaining: number
+    children?: React.ReactNode
 }
 
-const ImageCard = ({ imageAddress, imageSrc, imageId, imageMaxSupply, imageTitle, imageRemaining }: Props) => {
+const ImageCard = ({ imageAddress, imageSrc, imageId, imageMaxSupply, imageTitle, imageRemaining, children }: Props) => {
 
     const [copiedStatus, setCopiedStatus] = React.useState(false)
 
@@ -33,9 +34,9 @@ const ImageCard = ({ imageAddress, imageSrc, imageId, imageMaxSupply, imageTitle
     }
 
     return (
-        <div className='flex flex-col gap-2 items-center justify-center rounded-lg shadow-md w-fit bg-neutral-50'>
+        <div className='flex flex-col gap-2 items-center justify-center rounded-lg shadow-lg w-fit bg-neutral-50'>
             <ImageContainer src={imageSrc} alt={"NFT Image"} />
-            <div className='flex flex-col gap-1 w-64 p-2'>
+            <div className='flex flex-col gap-1 w-64 px-2'>
                 <div className='flex items-center justify-between'>
                     <p>{`${imageRemaining}/${imageMaxSupply}`}</p>
                     <Popover open={copiedStatus} onOpenChange={() => copiedPopoverChanged()}>
@@ -47,6 +48,7 @@ const ImageCard = ({ imageAddress, imageSrc, imageId, imageMaxSupply, imageTitle
                 </div>
                 <h2 title={imageTitle} className='text-center text-lg sm:text-xl break-words'>{imageTitle.slice(0, 50)} {imageTitle.length > 50 ? "..." : ""}</h2>
             </div>
+            {children}
         </div>
     )
 }

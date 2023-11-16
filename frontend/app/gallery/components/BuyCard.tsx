@@ -1,14 +1,17 @@
 "use client"
-import React, { use, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useContractReads } from 'wagmi'
-import ImageABI from "@/utils/abi/Image.json"
+import ImageABI from "@/utils/abi/Image.abi.json"
+import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
-import { Button } from "@/components/ui/button"
 import ImageCard from '@/components/ImageCard'
+import BuyDialog from './BuyDialog'
 
 interface Props {
     imageAddress: `0x${string}`
 }
+
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 const BuyCard = ({ imageAddress }: Props) => {
     const [imageSrc, setImageSrc] = useState<string>('')
@@ -16,6 +19,7 @@ const BuyCard = ({ imageAddress }: Props) => {
     const [imageMaxSupply, setImageMaxSupply] = useState<string>('')
     const [imageTitle, setImageTitle] = useState<string>('')
     const [imageRemaining, setImageRemaining] = useState<number>(0)
+    const [allowedTokens, setAllowedTokens] = useState<`0x${string}`[]>([])
 
     const { data, status } = useContractReads({
         contracts: [{
@@ -45,7 +49,15 @@ const BuyCard = ({ imageAddress }: Props) => {
             functionName: 'getMaxSupply',
             chainId: chain.id,
             args: []
-        }]
+        },
+        {
+            address: CONTRACT_ADDRESS,
+            abi: ImageManagerABI as any,
+            functionName: 'getAllowedTokens',
+            chainId: chain.id,
+            args: []
+        }
+    ]
     }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
 
     useEffect(() => {
@@ -55,13 +67,10 @@ const BuyCard = ({ imageAddress }: Props) => {
             setImageTitle(String(data[2].result))
             setImageMaxSupply(String(data[3].result))
             setImageRemaining(Number(data[3].result) - Number(data[1].result))
+            setAllowedTokens(data[4].result)
             console.log(data)
         }
     }, [data])
-
-    const handleCopyAddress = () => {
-        navigator.clipboard.writeText(imageAddress)
-    }
 
     const handleBuy = () => {
 
@@ -77,8 +86,9 @@ const BuyCard = ({ imageAddress }: Props) => {
             )}
             {status === "success" && imageAddress && imageId && imageMaxSupply && imageSrc && imageTitle && (
                 <div>
-                    <ImageCard imageAddress={imageAddress} imageSrc={imageSrc} imageId={imageId} imageMaxSupply={imageMaxSupply} imageTitle={imageTitle} imageRemaining={imageRemaining} />
-                    {/* <Button disabled={imageRemaining <= 0} className={`w-full mx-4`} onClick={() => handleBuy()}>{imageRemaining > 0 ? "Buy" : "Sold out"}</Button> */}
+                    <ImageCard imageAddress={imageAddress} imageSrc={imageSrc} imageId={imageId} imageMaxSupply={imageMaxSupply} imageTitle={imageTitle} imageRemaining={imageRemaining}>
+                        <BuyDialog imageRemaining={imageRemaining} title={imageTitle} imageAddress={imageAddress} allowedTokens={allowedTokens} />
+                    </ImageCard>
                 </div>
             )}
         </>
