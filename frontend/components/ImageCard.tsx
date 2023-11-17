@@ -8,17 +8,21 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 
-interface Props {
+interface ImageData {
     imageAddress: `0x${string}`
     imageSrc: string
-    imageId: string
-    imageMaxSupply: string
+    imageNextId: number
+    imageMaxSupply: number
     imageTitle: string
-    imageRemaining: number
+    imagePrice: number
+}
+
+interface Props {
+    imageData: ImageData
     children?: React.ReactNode
 }
 
-const ImageCard = ({ imageAddress, imageSrc, imageId, imageMaxSupply, imageTitle, imageRemaining, children }: Props) => {
+const ImageCard = ({ imageData: { imageAddress, imageSrc, imageMaxSupply, imageTitle, imageNextId }, children }: Props) => {
 
     const [copiedStatus, setCopiedStatus] = React.useState(false)
 
@@ -38,7 +42,7 @@ const ImageCard = ({ imageAddress, imageSrc, imageId, imageMaxSupply, imageTitle
             <ImageContainer src={imageSrc} alt={"NFT Image"} />
             <div className='flex flex-col gap-1 w-64 px-2'>
                 <div className='flex items-center justify-between'>
-                    <p>{`${imageRemaining}/${imageMaxSupply}`}</p>
+                    <p>{`${imageMaxSupply - imageNextId}/${imageMaxSupply}`}</p>
                     <Popover open={copiedStatus} onOpenChange={() => copiedPopoverChanged()}>
                         <PopoverTrigger asChild>
                             <p title={imageAddress} onClick={() => handleCopyAddress()} className=' cursor-pointer hover:bg-neutral-200 rounded-md px-1'>{`${imageAddress.slice(0, 3)}..${imageAddress.slice(-2)}`}</p>

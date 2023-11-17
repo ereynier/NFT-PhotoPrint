@@ -6,19 +6,36 @@ import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import ImageCard from '@/components/ImageCard'
 import BuyDialog from './BuyDialog'
+import { formatEther } from 'viem'
 
 interface Props {
     imageAddress: `0x${string}`
 }
 
+interface ImageData {
+    imageAddress: `0x${string}`
+    imageSrc: string
+    imageId: number
+    imageMaxSupply: number
+    imageTitle: string
+    imageNextId: number
+    imagePrice: number
+}
+
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
+
 const BuyCard = ({ imageAddress }: Props) => {
-    const [imageSrc, setImageSrc] = useState<string>('')
-    const [imageId, setImageId] = useState<string>('')
-    const [imageMaxSupply, setImageMaxSupply] = useState<string>('')
-    const [imageTitle, setImageTitle] = useState<string>('')
-    const [imageRemaining, setImageRemaining] = useState<number>(0)
+
+    const [imageData, setImageData] = useState<ImageData>({
+        imageAddress: imageAddress,
+        imageSrc: '',
+        imageId: 0,
+        imageMaxSupply: 0,
+        imageTitle: '',
+        imageNextId: 0,
+        imagePrice: 0
+    })
     const [allowedTokens, setAllowedTokens] = useState<`0x${string}`[]>([])
 
     const { data, status } = useContractReads({
@@ -53,28 +70,34 @@ const BuyCard = ({ imageAddress }: Props) => {
         {
             address: CONTRACT_ADDRESS,
             abi: ImageManagerABI as any,
+            functionName: 'getImagePriceInUsdInWei',
+            chainId: chain.id,
+            args: [imageAddress]
+        },
+        {
+            address: CONTRACT_ADDRESS,
+            abi: ImageManagerABI as any,
             functionName: 'getAllowedTokens',
             chainId: chain.id,
             args: []
         }
-    ]
+        ]
     }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
 
     useEffect(() => {
         if (data) {
-            setImageSrc(String(data[0].result))
-            setImageId(String(data[1].result))
-            setImageTitle(String(data[2].result))
-            setImageMaxSupply(String(data[3].result))
-            setImageRemaining(Number(data[3].result) - Number(data[1].result))
-            setAllowedTokens(data[4].result)
+            setImageData({
+                ...imageData,
+                imageSrc: String(data[0].result),
+                imageNextId: Number(data[1].result),
+                imageTitle: String(data[2].result),
+                imageMaxSupply: Number(data[3].result),
+                imagePrice: Number(formatEther(data[4].result))
+            })
+            setAllowedTokens(data[5].result)
             console.log(data)
         }
     }, [data])
-
-    const handleBuy = () => {
-
-    }
 
     return (
         <>
@@ -84,10 +107,10 @@ const BuyCard = ({ imageAddress }: Props) => {
             {status === "error" && (
                 <p>Error</p>
             )}
-            {status === "success" && imageAddress && imageId && imageMaxSupply && imageSrc && imageTitle && (
+            {status === "success" && imageAddress && (
                 <div>
-                    <ImageCard imageAddress={imageAddress} imageSrc={imageSrc} imageId={imageId} imageMaxSupply={imageMaxSupply} imageTitle={imageTitle} imageRemaining={imageRemaining}>
-                        <BuyDialog imageRemaining={imageRemaining} title={imageTitle} imageAddress={imageAddress} allowedTokens={allowedTokens} />
+                    <ImageCard imageData={imageData}>
+                        <BuyDialog imageData={imageData} allowedTokens={allowedTokens} />
                     </ImageCard>
                 </div>
             )}
