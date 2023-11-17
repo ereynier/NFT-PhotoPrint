@@ -29,6 +29,7 @@ contract HelperConfig is Script {
     int256 public constant USDC_USD_PRICE = 1e8;
     int256 public constant USDT_USD_PRICE = 101e6;
     uint256 public DEFAULT_ANVIL_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
+    address public ANVIL_OWNER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
     address public constant owner = 0xaA136C6bDfe6DfC154E9912Ead80F7179c55Bc08;
 
     NetworkConfig public activeNetworkConfig;
@@ -85,19 +86,19 @@ contract HelperConfig is Script {
         vm.startBroadcast();
         MockV3Aggregator ethUsdPriceFeed = new MockV3Aggregator(DECIMALS, ETH_USD_PRICE);
         ERC20Mock wethMock = new ERC20Mock();
-        wethMock.mint(msg.sender, 1000e8);
+        wethMock.mint(ANVIL_OWNER, 1000e18);
         MockV3Aggregator btcUsdPriceFeed = new MockV3Aggregator(DECIMALS, BTC_USD_PRICE);
         ERC20Mock wbtcMock = new ERC20Mock();
-        wbtcMock.mint(msg.sender, 1000e8);
+        wbtcMock.mint(ANVIL_OWNER, 1000e18);
         MockV3Aggregator daiUsdPriceFeed = new MockV3Aggregator(DECIMALS, DAI_USD_PRICE);
         ERC20Mock daiMock = new ERC20Mock();
-        daiMock.mint(msg.sender, 1000e8);
+        daiMock.mint(ANVIL_OWNER, 1000e18);
         MockV3Aggregator usdcUsdPriceFeed = new MockV3Aggregator(DECIMALS, USDC_USD_PRICE);
         ERC20Mock usdcMock = new ERC20Mock();
-        usdcMock.mint(msg.sender, 1000e8);
+        usdcMock.mint(ANVIL_OWNER, 1000e18);
         MockV3Aggregator usdtUsdPriceFeed = new MockV3Aggregator(DECIMALS, USDT_USD_PRICE);
         ERC20Mock usdtMock = new ERC20Mock();
-        usdtMock.mint(msg.sender, 1000e8);
+        usdtMock.mint(ANVIL_OWNER, 1000e18);
         vm.stopBroadcast();
 
         return NetworkConfig({
@@ -111,7 +112,7 @@ contract HelperConfig is Script {
             dai: address(daiMock),
             usdc: address(usdcMock),
             usdt: address(usdtMock),
-            owner: 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266,
+            owner: ANVIL_OWNER,
             deployerKey: DEFAULT_ANVIL_KEY
         });
     }
