@@ -1,71 +1,102 @@
 import { Button } from '@/components/ui/button'
-import React from 'react'
-import { useContractReads } from 'wagmi'
+import React, { useEffect, useState } from 'react'
+import { erc20ABI, useAccount, useContractReads, useContractWrite, usePrepareContractWrite } from 'wagmi'
 import ImageABI from "@/utils/abi/Image.abi.json"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
+import { formatEther } from 'viem'
+import { getPriceFromToken } from './getPriceAndAllowance'
+import { getAllowanceFromUser } from './getPriceAndAllowance'
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
-interface Props {
+interface ImageData {
     imageAddress: `0x${string}`
+    imageSrc: string
+    imageNextId: number
+    imageMaxSupply: number
+    imageTitle: string
+    imagePrice: number
+}
+
+interface Props {
+    imageData: ImageData
     selectedToken: `0x${string}` | null
 }
 
-const BuyButton = ({ imageAddress, selectedToken }: Props) => {
+const BuyButton = ({ imageData: { imageAddress, imagePrice }, selectedToken }: Props) => {
 
-    const { data, status } = useContractReads({
-        contracts: [{
-            address: imageAddress,
-            abi: ImageABI as any,
-            functionName: 'getUri',
-            chainId: chain.id,
-            args: []
-        },
-        {
-            address: imageAddress,
-            abi: ImageABI as any,
-            functionName: 'getNextId',
-            chainId: chain.id,
-            args: []
-        },
-        {
-            address: imageAddress,
-            abi: ImageABI as any,
-            functionName: 'name',
-            chainId: chain.id,
-            args: []
-        },
-        {
-            address: imageAddress,
-            abi: ImageABI as any,
-            functionName: 'getMaxSupply',
-            chainId: chain.id,
-            args: []
-        },
-        {
-            address: CONTRACT_ADDRESS,
-            abi: ImageManagerABI as any,
-            functionName: 'getImagePriceInUsdInWei',
-            chainId: chain.id,
-            args: [imageAddress]
-        },
-        {
-            address: CONTRACT_ADDRESS,
-            abi: ImageManagerABI as any,
-            functionName: 'getAllowedTokens',
-            chainId: chain.id,
-            args: []
+    const [tokenAmount, setTokenAmount] = useState<number>(0)
+    const [allowed, setAllowed] = useState<number>(0)
+    const { isConnected, address } = useAccount()
+
+    const getPrice = async () => {
+        const data = await getPriceFromToken(selectedToken as `0x${string}`, imagePrice)
+        console.log(data)
+        setTokenAmount(data.tokenAmount)
+    }
+
+    const getAllowance = async () => {
+        const data = await getAllowanceFromUser(selectedToken as `0x${string}`, address as `0x${string}`)
+        console.log(data)
+        setAllowed(data.allowance)
+    }
+
+    const { config: approveConfig } = usePrepareContractWrite({
+        address: selectedToken as `0x${string}`,
+        abi: erc20ABI,
+        functionName: 'approve',
+        args: [CONTRACT_ADDRESS, BigInt(tokenAmount)]
+    })
+
+    const { isLoading: approveIsLoading, isSuccess: approveIsSuccess, write: approveWrite } = useContractWrite({
+        ...approveConfig,
+        onSuccess(data) {
+            console.log(data)
+            getAllowance()
         }
-    ]
-    }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
+    })
+
+    useEffect(() => {
+        // if (data) {
+        //     setTokenAmount(Number(data[0].result))
+        //     setAllowed(Number(data[1].result))
+        //     console.log(data)
+        // }
+        if (selectedToken) {
+            getPrice()
+            getAllowance()
+        }
+    }, [selectedToken])
+
+
+
+    function toFixedIfNecessary(value: string, dp: number) {
+        return +parseFloat(value).toFixed(dp);
+    }
 
     const handleBuy = () => {
-        console.log(`Buying ${imageAddress} with ${selectedToken}`)
+        if (allowed < tokenAmount) {
+            console.log(`Approving ${CONTRACT_ADDRESS} for ${tokenAmount} ${selectedToken}`)
+            approveWrite?.()
+            // passer le bouton en loading
+
+        } else {
+            console.log(`Buying ${imageAddress} with ${tokenAmount} ${selectedToken}`)
+        }
+    }
+
+    const buttonDisplay = () => {
+        if (!isConnected) return "Connect"
+        if (selectedToken === null) return "Select Token"
+        if (allowed < tokenAmount) return "Approve"
+        return "Buy " + toFixedIfNecessary(formatEther(BigInt(tokenAmount)), 5)
     }
 
     return (
-        <Button size={"lg"} onClick={() => handleBuy()}>Buy</Button>
+        <div className='flex flex-row gap-4 items-center'>
+            <Button disabled={!isConnected || selectedToken == null || status == "loading" || approveIsLoading} size={"lg"} onClick={() => handleBuy()}>{buttonDisplay()}</Button>
+        </div>
     )
 }
 

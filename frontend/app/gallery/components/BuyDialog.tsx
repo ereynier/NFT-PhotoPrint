@@ -20,6 +20,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import BuyButton from './BuyButton'
+import { formatEther } from 'viem'
 
 interface ImageData {
     imageAddress: `0x${string}`
@@ -35,17 +36,15 @@ interface Props {
     allowedTokens: `0x${string}`[]
 }
 
-const BuyDialog = ({imageData: {imageAddress, imageTitle, imageMaxSupply, imageNextId, imagePrice }, allowedTokens } : Props) => {
+const BuyDialog = ({ imageData: { imageAddress, imageTitle, imageMaxSupply, imageNextId, imagePrice }, imageData, allowedTokens }: Props) => {
 
     const [tokensInfo, setTokensInfo] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState<boolean>(true)
     const [selectedToken, setSelectedToken] = useState<`0x${string}` | null>(null)
+    const [open, setOpen] = useState<boolean>(false)
 
     const { isConnected } = useAccount()
 
-    const getTokenInfo = async (tokenAddress: `0x${string}`) => {
-        return await getTokens(tokenAddress);
-    }
     const getTokensInfo = async () => {
         const tokensInfo = await Promise.all(allowedTokens.map(async (tokenAddress) => await getTokens(tokenAddress)))
         setTokensInfo(tokensInfo)
@@ -54,22 +53,25 @@ const BuyDialog = ({imageData: {imageAddress, imageTitle, imageMaxSupply, imageN
     }
 
     useEffect(() => {
+        if (!isConnected) {
+            setOpen(false)
+        }
         getTokensInfo()
-    }, [allowedTokens])
+    }, [allowedTokens, isConnected])
 
     return (
-        <Dialog>
+        <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
             <DialogTrigger asChild>
-                <Button disabled={imageMaxSupply - imageNextId <= 0 || !isConnected} className={`w-full mx-4 rounded-t-none`}>{!isConnected ? "Not connected" : (imageMaxSupply - imageNextId > 0 ? `Buy $${imagePrice}` : "Sold out")}</Button>
+                <Button disabled={imageMaxSupply - imageNextId <= 0 || !isConnected} className={`w-full mx-4 rounded-t-none`}>{!isConnected ? "Not connected" : (imageMaxSupply - imageNextId > 0 ? `Buy $${formatEther(BigInt(imagePrice))}` : "Sold out")}</Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>{`${imageTitle.slice(0, 30)}${imageTitle.length > 30 ? "..." : ""}`}</DialogTitle>
                     <DialogDescription>
-                        This NFT comes with a unique free print of the photo that you can redeem at any time.
+                        This NFT comes with a unique free print of the photo that you can claim at any time.
                     </DialogDescription>
                 </DialogHeader>
-                <p className='text-start'>{imageMaxSupply - imageNextId} NFTs left in this collection.</p>
+                <p className='text-start'>There are {imageMaxSupply - imageNextId} NFTs left in this collection at a price of ${formatEther(BigInt(imagePrice))}.</p>
                 <div className='flex flex-row items-center justify-between'>
                     {/* Select through all the tokens available*/}
                     <Select onValueChange={(value: `0x${string}`) => setSelectedToken(value)}>
@@ -87,7 +89,7 @@ const BuyDialog = ({imageData: {imageAddress, imageTitle, imageMaxSupply, imageN
                             ))}
                         </SelectContent>
                     </Select>
-                    <BuyButton imageAddress={imageAddress} selectedToken={selectedToken} />
+                    <BuyButton imageData={imageData} selectedToken={selectedToken} />
                 </div>
             </DialogContent>
         </Dialog>

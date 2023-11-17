@@ -92,7 +92,7 @@ const BuyCard = ({ imageAddress }: Props) => {
                 imageNextId: Number(data[1].result),
                 imageTitle: String(data[2].result),
                 imageMaxSupply: Number(data[3].result),
-                imagePrice: Number(formatEther(data[4].result))
+                imagePrice: Number(data[4].result)
             })
             setAllowedTokens(data[5].result)
             console.log(data)
