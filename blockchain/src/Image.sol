@@ -20,6 +20,9 @@ contract Image is ERC721, ERC721Burnable, Ownable {
     string private _URI;
 
     /* ========== Events ========== */
+
+    event Minted(address indexed to, uint256 indexed tokenId);
+
     /* ========== Modifiers ========== */
     /* ========== FUNCTIONS ========== */
     /* ========== constructor ========== */
@@ -47,6 +50,7 @@ contract Image is ERC721, ERC721Burnable, Ownable {
         }
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
+        emit Minted(to, tokenId);
     }
 
     /* ========== Internal functions ========== */

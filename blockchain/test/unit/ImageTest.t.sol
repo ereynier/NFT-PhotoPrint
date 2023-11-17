@@ -14,6 +14,8 @@ contract ImageTest is Test {
     uint256 public MAX_SUPPLY = 100;
     string public BASE_URI_STRING = "https://example.com/";
 
+    event Minted(address indexed to, uint256 indexed tokenId);
+
     function setUp() public {
         vm.prank(OWNER);
         image = new Image(OWNER, NAME, SYMBOL, MAX_SUPPLY, BASE_URI_STRING);
@@ -28,6 +30,8 @@ contract ImageTest is Test {
 
     function testSafeMintGood() public {
         vm.prank(OWNER);
+        vm.expectEmit(true, true, false, false);
+        emit Minted(USER, 0);
         image.safeMint(USER);
         assertEq(image.balanceOf(USER), 1);
     }
