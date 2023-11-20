@@ -50,7 +50,9 @@ const ImageCard = ({ imageData: { imageAddress, imageSrc, imageMaxSupply, imageT
                         <PopoverContent className='w-fit p-1'>Copied</PopoverContent>
                     </Popover>
                 </div>
-                <h2 title={imageTitle} className='text-center text-lg sm:text-xl break-words'>{imageTitle.slice(0, 50)} {imageTitle.length > 50 ? "..." : ""}</h2>
+                <div className='flex items-center justify-center h-14'>
+                    <h2 title={imageTitle} className='text-center text-lg sm:text-xl break-words line-clamp-2'>{imageTitle}</h2>
+                </div>
             </div>
             {children}
         </div>
