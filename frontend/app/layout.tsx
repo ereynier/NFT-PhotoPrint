@@ -6,6 +6,7 @@ import Navbar from './Components/Navbar'
 import Footer from './Components/Footer'
 import { WagmiConfig } from 'wagmi'
 import config from '@/utils/wagmiConfig'
+import { Toaster } from "@/components/ui/toaster"
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -22,6 +23,7 @@ export default function RootLayout({
                     <Navbar />
                     {children}
                     <Footer />
+                    <Toaster />
                 </WagmiConfig>
             </body>
         </html>

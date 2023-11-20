@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect, useState } from 'react'
-import { useContractReads } from 'wagmi'
+import { useContractEvent, useContractReads } from 'wagmi'
 import ImageABI from "@/utils/abi/Image.abi.json"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
@@ -38,7 +38,7 @@ const BuyCard = ({ imageAddress }: Props) => {
     })
     const [allowedTokens, setAllowedTokens] = useState<`0x${string}`[]>([])
 
-    const { data, status } = useContractReads({
+    const { data, status, refetch: refetchImageDatas } = useContractReads({
         contracts: [{
             address: imageAddress,
             abi: ImageABI as any,
@@ -82,7 +82,19 @@ const BuyCard = ({ imageAddress }: Props) => {
             args: []
         }
         ]
-    }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
+    }) as {
+        data: any, status: 'idle' | 'error' | 'loading' | 'success', refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any>
+    }
+
+    useContractEvent({
+        address: imageAddress as `0x${string}`,
+        abi: ImageABI,
+        eventName: 'minted',
+        listener(log: any) {
+            console.log(log)
+            refetchImageDatas({ throwOnError: false, cancelRefetch: true })
+        }
+    })
 
     useEffect(() => {
         if (data) {
@@ -110,7 +122,7 @@ const BuyCard = ({ imageAddress }: Props) => {
             {status === "success" && imageAddress && (
                 <div>
                     <ImageCard imageData={imageData}>
-                        <BuyDialog imageData={imageData} allowedTokens={allowedTokens} />
+                        <BuyDialog imageData={imageData} allowedTokens={allowedTokens} refetchImageDatas={refetchImageDatas} />
                     </ImageCard>
                 </div>
             )}

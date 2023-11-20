@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { erc20ABI, useAccount, useContractReads, useContractWrite, usePrepareContractWrite } from 'wagmi'
-import ImageABI from "@/utils/abi/Image.abi.json"
+import { erc20ABI, useAccount, useContractWrite, usePrepareContractWrite } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
-import { chain } from '@/utils/chains'
 import { formatEther } from 'viem'
 import { getPriceFromToken } from './getPriceAndAllowance'
 import { getAllowanceFromUser } from './getPriceAndAllowance'
+import { useToast } from "@/components/ui/use-toast"
+
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
@@ -22,13 +22,17 @@ interface ImageData {
 interface Props {
     imageData: ImageData
     selectedToken: `0x${string}` | null
+    refetchUserBalance: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any>
+    refetchImageDatas: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any>
 }
 
-const BuyButton = ({ imageData: { imageAddress, imagePrice }, selectedToken }: Props) => {
+const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMaxSupply, imageTitle }, selectedToken, refetchUserBalance, refetchImageDatas }: Props) => {
 
     const [tokenAmount, setTokenAmount] = useState<number>(0)
     const [allowed, setAllowed] = useState<number>(0)
     const { isConnected, address } = useAccount()
+    const { toast } = useToast()
+
 
     const getPrice = async () => {
         const data = await getPriceFromToken(selectedToken as `0x${string}`, imagePrice)
@@ -49,7 +53,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice }, selectedToken }: P
         args: [CONTRACT_ADDRESS, BigInt(tokenAmount)]
     })
 
-    const { isLoading: approveIsLoading, isSuccess: approveIsSuccess, write: approveWrite } = useContractWrite({
+    const { isLoading: approveIsLoading, write: approveWrite } = useContractWrite({
         ...approveConfig,
         onSuccess(data) {
             console.log(data)
@@ -57,12 +61,35 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice }, selectedToken }: P
         }
     })
 
+    // const { config: buyConfig, isError: isContractBuyError } = usePrepareContractWrite({
+    //     address: CONTRACT_ADDRESS,
+    //     abi: ImageManagerABI,
+    //     functionName: 'mint',
+    //     args: [imageAddress, address, selectedToken]
+    // })
+
+    const { isLoading: buyIsLoading, write: buyWrite } = useContractWrite({
+        address: CONTRACT_ADDRESS,
+        abi: ImageManagerABI,
+        functionName: 'mint',
+        args: [imageAddress, address, selectedToken],
+        onSuccess(data) {
+            console.log(data)
+            getAllowance()
+            toast({
+                title: `Successfully buy ${imageTitle.slice(0, 20)}...`,
+                description: "Retrieve your NFT in your profile",
+            })
+            refetchUserBalance({ throwOnError: false, cancelRefetch: false })
+            refetchImageDatas({ throwOnError: false, cancelRefetch: false })
+            var audio = new Audio('/audio/success.mp3');
+            audio.volume = 0.2;
+            audio.play();
+        }
+    })
+
+
     useEffect(() => {
-        // if (data) {
-        //     setTokenAmount(Number(data[0].result))
-        //     setAllowed(Number(data[1].result))
-        //     console.log(data)
-        // }
         if (selectedToken) {
             getPrice()
             getAllowance()
@@ -79,23 +106,24 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice }, selectedToken }: P
         if (allowed < tokenAmount) {
             console.log(`Approving ${CONTRACT_ADDRESS} for ${tokenAmount} ${selectedToken}`)
             approveWrite?.()
-            // passer le bouton en loading
-
         } else {
             console.log(`Buying ${imageAddress} with ${tokenAmount} ${selectedToken}`)
+            buyWrite?.()
         }
     }
 
     const buttonDisplay = () => {
         if (!isConnected) return "Connect"
+        if (imageNextId >= imageMaxSupply) return "Sold Out"
         if (selectedToken === null) return "Select Token"
         if (allowed < tokenAmount) return "Approve"
+        // if (allowed >= tokenAmount && isContractBuyError) return "Error"
         return "Buy " + toFixedIfNecessary(formatEther(BigInt(tokenAmount)), 5)
     }
 
     return (
         <div className='flex flex-row gap-4 items-center'>
-            <Button disabled={!isConnected || selectedToken == null || status == "loading" || approveIsLoading} size={"lg"} onClick={() => handleBuy()}>{buttonDisplay()}</Button>
+            <Button disabled={!isConnected || selectedToken == null || approveIsLoading || buyIsLoading || imageNextId >= imageMaxSupply} size={"lg"} onClick={() => handleBuy()}>{buttonDisplay()}</Button>
         </div>
     )
 }
