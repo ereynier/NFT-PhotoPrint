@@ -6,6 +6,7 @@ import {
     useAccount,
     useConnect,
     useDisconnect,
+    useNetwork,
 } from 'wagmi'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
@@ -21,6 +22,7 @@ const ConnectButton = () => {
     const { address, isConnected } = useAccount()
     const [animation, setAnimation] = React.useState('opacity-0')
     const [copiedStatus, setCopiedStatus] = React.useState(false)
+    const { chain: currentChain } = useNetwork()
 
     const onClickCopy = () => {
         navigator.clipboard.writeText(address as string);
@@ -35,7 +37,7 @@ const ConnectButton = () => {
 
     return (
         <div>
-            {isConnected ? (
+            {isConnected && (currentChain?.id === chain.id ? (
                 <div className='flex flex-row gap-2'>
                     <p title={`${address}`} className={`break-all text-black font-medium text-lg cursor-default`}>{`${address?.slice(0, 5)}...${address?.slice(-4)}`}</p>
                     <Popover open={copiedStatus} onOpenChange={() => copiedPopoverChanged()}>
@@ -48,6 +50,11 @@ const ConnectButton = () => {
                     </Popover>
                 </div>
             ) : (
+                <div className='flex flex-row gap-2'>
+                    <p className='break-words text-black font-semibold text-lg cursor-default'>Please switch network to {chain.name}</p>
+                </div>
+            ))}
+            {!isConnected && (
                 // Dialog with a list of connectors
                 <ConnectDialog />
             )}

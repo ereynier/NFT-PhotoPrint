@@ -1,11 +1,12 @@
 import { Button } from '@/components/ui/button'
 import React, { useEffect, useState } from 'react'
-import { erc20ABI, useAccount, useContractWrite, usePrepareContractWrite } from 'wagmi'
+import { erc20ABI, useAccount, useContractWrite, useNetwork, usePrepareContractWrite } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { formatEther } from 'viem'
 import { getPriceFromToken } from './getPriceAndAllowance'
 import { getAllowanceFromUser } from './getPriceAndAllowance'
 import { useToast } from "@/components/ui/use-toast"
+import { chain } from '@/utils/chains'
 
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -32,6 +33,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
     const [allowed, setAllowed] = useState<number>(0)
     const { isConnected, address } = useAccount()
     const { toast } = useToast()
+    const {chain: currentChain } = useNetwork()
 
 
     const getPrice = async () => {
@@ -50,7 +52,8 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
         address: selectedToken as `0x${string}`,
         abi: erc20ABI,
         functionName: 'approve',
-        args: [CONTRACT_ADDRESS, BigInt(tokenAmount)]
+        args: [CONTRACT_ADDRESS, BigInt(tokenAmount)],
+        chainId: chain.id
     })
 
     const { isLoading: approveIsLoading, write: approveWrite } = useContractWrite({
@@ -58,7 +61,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
         onSuccess(data) {
             console.log(data)
             getAllowance()
-        }
+        },
     })
 
     // const { config: buyConfig, isError: isContractBuyError } = usePrepareContractWrite({
@@ -85,7 +88,8 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
             var audio = new Audio('/audio/success.mp3');
             audio.volume = 0.2;
             audio.play();
-        }
+        },
+        chainId: chain.id
     })
 
 
@@ -114,6 +118,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
 
     const buttonDisplay = () => {
         if (!isConnected) return "Connect"
+        if (currentChain?.id !== chain.id) return "Wrong Network"
         if (imageNextId >= imageMaxSupply) return "Sold Out"
         if (selectedToken === null) return "Select Token"
         if (allowed < tokenAmount) return "Approve"
@@ -123,7 +128,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
 
     return (
         <div className='flex flex-row gap-4 items-center'>
-            <Button disabled={!isConnected || selectedToken == null || approveIsLoading || buyIsLoading || imageNextId >= imageMaxSupply} size={"lg"} onClick={() => handleBuy()}>{buttonDisplay()}</Button>
+            <Button disabled={!isConnected || selectedToken == null || approveIsLoading || buyIsLoading || imageNextId >= imageMaxSupply || currentChain?.id !== chain.id} size={"lg"} onClick={() => handleBuy()}>{buttonDisplay()}</Button>
         </div>
     )
 }
