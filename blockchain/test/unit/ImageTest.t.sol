@@ -86,4 +86,20 @@ contract ImageTest is Test {
         vm.stopPrank();
         assertEq(image.tokenOfOwnerByIndex(USER, 2), 3);
     }
+
+    function testGetIdsByUserGood() public {
+        assertEq(image.getIdsByUser(USER).length, 0);
+        vm.prank(OWNER);
+        image.safeMint(USER);
+        assertEq(image.getIdsByUser(USER)[0], 0);
+        vm.prank(OWNER);
+        image.safeMint(USER);
+        assertEq(image.getIdsByUser(USER)[0], 0);
+        assertEq(image.getIdsByUser(USER)[1], 1);
+        vm.startPrank(OWNER);
+        image.safeMint(makeAddr("other"));
+        image.safeMint(USER);
+        vm.stopPrank();
+        assertEq(image.getIdsByUser(USER)[2], 3);
+    }
 }

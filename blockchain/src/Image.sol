@@ -89,4 +89,12 @@ contract Image is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     function getUri() external view returns (string memory) {
         return _URI;
     }
+
+    function getIdsByUser(address user) external view returns (uint256[] memory) {
+        uint256[] memory tokenIds = new uint256[](balanceOf(user));
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            tokenIds[i] = tokenOfOwnerByIndex(user, i);
+        }
+        return tokenIds;
+    }
 }

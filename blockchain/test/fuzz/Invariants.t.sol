@@ -51,7 +51,6 @@ contract InvariantsTest is StdInvariant, Test {
         targetContract(address(handler));
     }
 
-
     uint256[] public totalNfts;
 
     function invariant_ImagePlusCertificateShouldNeverReduce() public {
@@ -59,7 +58,8 @@ contract InvariantsTest is StdInvariant, Test {
         for (uint256 i = 0; i < imagesAddresses.length; i++) {
             address imageAddress = imagesAddresses[i];
             address certificateAddress = imageManager.getCertificateByImage(imageAddress);
-            uint256 imagesCount = Image(imageAddress).balanceOf(address(imageManager)) + Image(imageAddress).balanceOf(address(handler));
+            uint256 imagesCount =
+                Image(imageAddress).balanceOf(address(imageManager)) + Image(imageAddress).balanceOf(address(handler));
             uint256 certificatesCount = Certificate(certificateAddress).balanceOf(address(handler));
             uint256 totalNft = imagesCount + certificatesCount;
             if (totalNfts.length <= i) {
@@ -79,7 +79,8 @@ contract InvariantsTest is StdInvariant, Test {
         address[] memory imagesAddresses = imageManager.getImagesAddresses();
         for (uint256 i = 0; i < imagesAddresses.length; i++) {
             address imageAddress = imagesAddresses[i];
-            totalSoldInUsd = totalSoldInUsd + Image(imageAddress).getNextId() * imageManager.getImagePriceInUsdInWei(imageAddress);
+            totalSoldInUsd =
+                totalSoldInUsd + Image(imageAddress).getNextId() * imageManager.getImagePriceInUsdInWei(imageAddress);
         }
 
         uint256 totalBalanceInUsd = 0;
@@ -95,7 +96,6 @@ contract InvariantsTest is StdInvariant, Test {
     }
 
     function invariant_gettersShouldNotRevert() public view {
-
         address[] memory imageAddresses = imageManager.getImagesAddresses();
         address imageAddress;
         if (imageAddresses.length > 0) {
@@ -118,6 +118,12 @@ contract InvariantsTest is StdInvariant, Test {
             imageManager.getPriceFeeds(tokenAddress);
             imageManager.getTokenAmountFromUsd(tokenAddress, 1e18);
             imageManager.getTokensAmountFromImage(imageAddress);
+        }
+        for (uint256 i = 0; i < imageAddresses.length; i++) {
+            Image(imageAddresses[i]).getMaxSupply();
+            Image(imageAddresses[i]).getNextId();
+            Image(imageAddresses[i]).getUri();
+            Image(imageAddresses[i]).getIdsByUser(address(handler));
         }
     }
 }

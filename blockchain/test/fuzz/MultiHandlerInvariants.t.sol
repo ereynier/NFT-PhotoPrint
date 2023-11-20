@@ -126,6 +126,12 @@ contract MultiHandlerInvariants is StdInvariant, Test {
                 imageManager.getTokenAmountFromUsd(allowedTokens[j], 1e18);
                 imageManager.getTokensAmountFromImage(imageAddress);
             }
+            for (uint256 k = 0; k < imageAddresses.length; k++) {
+                Image(imageAddress).getMaxSupply();
+                Image(imageAddress).getNextId();
+                Image(imageAddress).getUri();
+                Image(imageAddress).getIdsByUser(address(handlers[0]));
+            }
         }
     }
 }
