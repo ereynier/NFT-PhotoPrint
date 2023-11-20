@@ -1,17 +1,47 @@
 "use client"
 
-import React from 'react'
-import { useAccount } from "wagmi"
+import React, { useEffect, useState } from 'react'
+import { useAccount, useContractReads } from "wagmi"
+import Collection from './Collection'
+import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
+import { chain } from '@/utils/chains'
+
+const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 const Profile = () => {
-  const { address, isConnected } = useAccount()
+
+  const [imageAddresses, setImageAddresses] = useState<`0x${string}`[]>([])
+
+  const { isConnected } = useAccount()
+
+  const { data, status } = useContractReads({
+    contracts: [
+      {
+        address: CONTRACT_ADDRESS,
+        abi: ImageManagerABI as any,
+        functionName: 'getImagesAddresses',
+        chainId: chain.id,
+        args: []
+      }
+    ]
+  }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
+
+  useEffect(() => {
+    if (data) {
+      setImageAddresses(data[0].result)
+    }
+  }, [data])
 
   return (
     <div className="text-foreground bg-background">
       <h1 className="text-2xl sm:text-3xl md:text-4xl w-full text-center p-2">Collection</h1>
-      {isConnected ? (
-        address
-      ) : <h2 className="text-md md:text-lg w-full text-center p-2">Connect to view your collection</h2>}
+      {!isConnected && (<h2 className="text-md md:text-lg w-full text-center p-2">Connect to view your collection</h2>)}
+      {isConnected && status == "success" && (
+        <Collection imageAddresses={imageAddresses} />
+      )}
+      {isConnected && status == "loading" && (
+        <h2 className="text-md md:text-lg w-full text-center p-2">Loading...</h2>
+      )}
     </div>
   )
 }

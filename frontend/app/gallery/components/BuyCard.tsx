@@ -98,16 +98,18 @@ const BuyCard = ({ imageAddress }: Props) => {
 
     useEffect(() => {
         if (data) {
-            setImageData({
-                ...imageData,
-                imageSrc: String(data[0].result),
-                imageNextId: Number(data[1].result),
-                imageTitle: String(data[2].result),
-                imageMaxSupply: Number(data[3].result),
-                imagePrice: Number(data[4].result)
-            })
-            setAllowedTokens(data[5].result)
-            console.log(data)
+            if (!isNaN(Number(data[1].result))) {
+                setImageData({
+                    ...imageData,
+                    imageSrc: String(data[0].result),
+                    imageNextId: Number(data[1].result),
+                    imageTitle: String(data[2].result),
+                    imageMaxSupply: Number(data[3].result),
+                    imagePrice: Number(data[4].result)
+                })
+                setAllowedTokens(data[5].result)
+                console.log(data)
+            }
         }
     }, [data])
 
