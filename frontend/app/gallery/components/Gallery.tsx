@@ -17,6 +17,7 @@ enum ReadState {
 const Gallery = () => {
 
   const [readState, setReadState] = useState<ReadState>(ReadState.loading)
+  const [imageAddresses, setImageAddresses] = useState<`0x${string}`[]>([])
 
   const { data, isError, isLoading } = useContractRead({
     address: CONTRACT_ADDRESS,
@@ -36,6 +37,7 @@ const Gallery = () => {
     if (data && !isError && !isLoading) {
       setReadState(ReadState.success)
       console.log(data)
+      setImageAddresses([...data].reverse())
     }
 
   }, [data, isLoading, isError])
@@ -49,9 +51,9 @@ const Gallery = () => {
       {readState === ReadState.error && (
         <p>Error</p>
       )}
-      {readState === ReadState.success && (
+      {readState === ReadState.success && imageAddresses && (
         <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>
-          {data.map((imageAddress) => (
+          {imageAddresses.map((imageAddress) => (
             <li key={imageAddress}>
               <BuyCard imageAddress={imageAddress} />
             </li>
