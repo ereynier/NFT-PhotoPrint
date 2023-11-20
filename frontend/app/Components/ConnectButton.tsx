@@ -36,7 +36,7 @@ const ConnectButton = () => {
     }
 
     return (
-        <div>
+        <>
             {isConnected && (currentChain?.id === chain.id ? (
                 <div className='flex flex-row gap-2'>
                     <p title={`${address}`} className={`break-all text-black font-medium text-lg cursor-default`}>{`${address?.slice(0, 5)}...${address?.slice(-4)}`}</p>
@@ -58,7 +58,7 @@ const ConnectButton = () => {
                 // Dialog with a list of connectors
                 <ConnectDialog />
             )}
-        </div>
+        </>
 
     )
 
