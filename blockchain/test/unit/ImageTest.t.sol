@@ -66,4 +66,24 @@ contract ImageTest is Test {
         image.safeMint(USER);
         assertEq(image.getNextId(), 1);
     }
+
+    function testGetBaseURIGood() public {
+        assertEq(image.getUri(), BASE_URI_STRING);
+    }
+
+    function testTokenOfOwnerByIndexGood() public {
+        vm.prank(OWNER);
+        image.safeMint(USER);
+        assertEq(image.tokenOfOwnerByIndex(USER, 0), 0);
+        vm.prank(OWNER);
+        image.safeMint(USER);
+        for (uint256 i = 0; i < image.balanceOf(USER); i++) {
+            assertEq(image.tokenOfOwnerByIndex(USER, i), i);
+        }
+        vm.startPrank(OWNER);
+        image.safeMint(makeAddr("other"));
+        image.safeMint(USER);
+        vm.stopPrank();
+        assertEq(image.tokenOfOwnerByIndex(USER, 2), 3);
+    }
 }

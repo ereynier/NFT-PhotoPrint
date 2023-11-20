@@ -3,12 +3,13 @@ pragma solidity 0.8.18;
 
 /* ========== Imports ========== */
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from  "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {ERC721Burnable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 /* ========== Interfaces, libraries, contracts ========== */
 
-contract Image is ERC721, ERC721Burnable, Ownable {
+contract Image is ERC721, ERC721Enumerable, ERC721Burnable, Ownable {
     /* ========== Errors ========== */
     error Image__MaxSupplyReached();
 
@@ -53,7 +54,27 @@ contract Image is ERC721, ERC721Burnable, Ownable {
         emit Minted(to, tokenId);
     }
 
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721, ERC721Enumerable)
+        returns (bool)
+    {
+        return super.supportsInterface(interfaceId);
+    }
+
     /* ========== Internal functions ========== */
+
+
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 firstTokenId,
+        uint256 batchSize
+    ) internal virtual override(ERC721, ERC721Enumerable) {
+        super._beforeTokenTransfer(from, to, firstTokenId, batchSize);
+    }
+
     /* ========== Private functions ========== */
     /* ========== Internal & private view / pure functions ========== */
     /* ========== External & public view / pure functions ========== */

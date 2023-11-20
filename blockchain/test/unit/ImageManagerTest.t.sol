@@ -340,23 +340,27 @@ contract ImageManagerTest is Test {
     }
 
     function testWithdrawTokenGoodDeal() public {
+        uint initialWbtcBalance = ERC20Mock(wbtc).balanceOf(OWNER);
+        uint initialDaiBalance = ERC20Mock(dai).balanceOf(OWNER);
         deal(address(wbtc), address(imageManager), STARTING_ERC20_BALANCE);
         deal(address(dai), address(imageManager), STARTING_ERC20_BALANCE);
         vm.startPrank(OWNER);
         imageManager.withdrawToken(wbtc, OWNER);
         vm.stopPrank();
-        assertEq(ERC20Mock(wbtc).balanceOf(OWNER), STARTING_ERC20_BALANCE);
+        assertEq(ERC20Mock(wbtc).balanceOf(OWNER) - initialWbtcBalance, STARTING_ERC20_BALANCE);
         assertEq(ERC20Mock(wbtc).balanceOf(address(imageManager)), 0);
         assertEq(ERC20Mock(dai).balanceOf(address(imageManager)), STARTING_ERC20_BALANCE);
-        assertEq(ERC20Mock(dai).balanceOf(OWNER), 0);
+        assertEq(ERC20Mock(dai).balanceOf(OWNER) - initialDaiBalance, 0);
         vm.startPrank(OWNER);
         imageManager.withdrawToken(dai, OWNER);
         vm.stopPrank();
-        assertEq(ERC20Mock(dai).balanceOf(OWNER), STARTING_ERC20_BALANCE);
+        assertEq(ERC20Mock(dai).balanceOf(OWNER) - initialDaiBalance, STARTING_ERC20_BALANCE);
         assertEq(ERC20Mock(dai).balanceOf(address(imageManager)), 0);
     }
 
     function testWithdrawTokenGoodBuy() public {
+        uint initialWethBalance = ERC20Mock(weth).balanceOf(OWNER);
+        uint initialDaiBalance = ERC20Mock(dai).balanceOf(OWNER);
         vm.prank(OWNER);
         address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
         deal(address(weth), USER_1, STARTING_ERC20_BALANCE);
@@ -373,13 +377,13 @@ contract ImageManagerTest is Test {
         assertEq(ERC20Mock(dai).balanceOf(address(imageManager)), imageManager.getTokenAmountFromUsd(dai, VALUE_IN_USD));
         vm.prank(OWNER);
         imageManager.withdrawToken(weth, OWNER);
-        assertGt(ERC20Mock(weth).balanceOf(OWNER), 0);
-        assertEq(ERC20Mock(weth).balanceOf(OWNER), imageManager.getTokenAmountFromUsd(weth, VALUE_IN_USD));
+        assertGt(ERC20Mock(weth).balanceOf(OWNER) - initialWethBalance, 0);
+        assertEq(ERC20Mock(weth).balanceOf(OWNER) - initialWethBalance, imageManager.getTokenAmountFromUsd(weth, VALUE_IN_USD));
         assertEq(ERC20Mock(weth).balanceOf(address(imageManager)), 0);
         vm.prank(OWNER);
         imageManager.withdrawToken(dai, OWNER);
-        assertGt(ERC20Mock(dai).balanceOf(OWNER), 0);
-        assertEq(ERC20Mock(dai).balanceOf(OWNER), imageManager.getTokenAmountFromUsd(dai, VALUE_IN_USD));
+        assertGt(ERC20Mock(dai).balanceOf(OWNER) - initialDaiBalance, 0);
+        assertEq(ERC20Mock(dai).balanceOf(OWNER) - initialDaiBalance, imageManager.getTokenAmountFromUsd(dai, VALUE_IN_USD));
         assertEq(ERC20Mock(dai).balanceOf(address(imageManager)), 0);
     }
 
