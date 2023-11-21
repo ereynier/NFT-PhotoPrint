@@ -4,7 +4,7 @@ import ImageABI from "@/utils/abi/Image.abi.json"
 
 export async function getImagesByUser(imageAddresses: `0x${string}`[], userAddress: `0x${string}`) {
 
-    const data: { [key: string]: number[] } = {}
+    const data: { [key: `0x${string}`]: number[] } = {}
 
     for (const imageAddress of imageAddresses) {
         const dataBalance = await readContracts({

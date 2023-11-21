@@ -6,7 +6,6 @@ import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import ImageCard from '@/components/ImageCard'
 import BuyDialog from './BuyDialog'
-import { formatEther } from 'viem'
 
 interface Props {
     imageAddress: `0x${string}`

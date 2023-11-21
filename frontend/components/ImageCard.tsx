@@ -7,11 +7,21 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import Image from 'next/image'
+
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+
 
 interface ImageData {
     imageAddress: `0x${string}`
     imageSrc: string
     imageNextId: number
+    imageId: number
     imageMaxSupply: number
     imageTitle: string
     imagePrice: number
@@ -19,10 +29,11 @@ interface ImageData {
 
 interface Props {
     imageData: ImageData
+    displayId?: boolean
     children?: React.ReactNode
 }
 
-const ImageCard = ({ imageData: { imageAddress, imageSrc, imageMaxSupply, imageTitle, imageNextId }, children }: Props) => {
+const ImageCard = ({ imageData: { imageAddress, imageSrc, imageMaxSupply, imageTitle, imageNextId, imageId }, displayId, children }: Props) => {
 
     const [copiedStatus, setCopiedStatus] = React.useState(false)
 
@@ -42,7 +53,23 @@ const ImageCard = ({ imageData: { imageAddress, imageSrc, imageMaxSupply, imageT
             <ImageContainer src={imageSrc} alt={"NFT Image"} />
             <div className='flex flex-col gap-1 w-64 px-2'>
                 <div className='flex items-center justify-between'>
-                    <p>{`${imageMaxSupply - imageNextId}/${imageMaxSupply}`}</p>
+                    {displayId && (
+                        <div className='flex flex-row gap-1'>
+                            <p>Nb: {String(Number(imageId) + 1)}/{String(imageMaxSupply)}</p>
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger>
+                                        <Image src={"/info.svg"} width={20} height={20} alt={"Info"} className='hover:bg-neutral-300 rounded-full' />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>The NFT number {Number(imageId) + 1} corresponds to id {String(imageId)}</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+
+                        </div>
+                    )}
+                    {!displayId && <p>{`${String(imageMaxSupply - imageNextId)}/${String(imageMaxSupply)}`}</p>}
                     <Popover open={copiedStatus} onOpenChange={() => copiedPopoverChanged()}>
                         <PopoverTrigger asChild>
                             <p title={imageAddress} onClick={() => handleCopyAddress()} className=' cursor-pointer hover:bg-neutral-200 rounded-md px-1'>{`${imageAddress.slice(0, 3)}..${imageAddress.slice(-2)}`}</p>
