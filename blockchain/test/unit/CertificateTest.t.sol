@@ -63,4 +63,48 @@ contract CertificateTest is Test {
         certificate.safeMint(USER, 42);
         assertEq(certificate.getTotalMinted(), 2);
     }
+
+    function testGetBaseURIGood() public {
+        assertEq(certificate.getUri(), BASE_URI_STRING);
+    }
+
+    function testTokenURIGood() public {
+        vm.startPrank(OWNER);
+        certificate.safeMint(USER, 10);
+        vm.stopPrank();
+        assertEq(certificate.tokenURI(10), BASE_URI_STRING);
+        assertEq(certificate.tokenURI(42), BASE_URI_STRING);
+    }
+
+    function testTokenOfOwnerByIndexGood() public {
+        vm.prank(OWNER);
+        certificate.safeMint(USER, 10);
+        assertEq(certificate.tokenOfOwnerByIndex(USER, 0), 10);
+        vm.prank(OWNER);
+        certificate.safeMint(USER, 11);
+        for (uint256 i = 0; i < certificate.balanceOf(USER); i++) {
+            assertEq(certificate.tokenOfOwnerByIndex(USER, i), 10 + i);
+        }
+        vm.startPrank(OWNER);
+        certificate.safeMint(makeAddr("other"), 12);
+        certificate.safeMint(USER, 13);
+        vm.stopPrank();
+        assertEq(certificate.tokenOfOwnerByIndex(USER, 2), 13);
+    }
+
+    function testGetIdsByUserGood() public {
+        assertEq(certificate.getIdsByUser(USER).length, 0);
+        vm.prank(OWNER);
+        certificate.safeMint(USER, 7);
+        assertEq(certificate.getIdsByUser(USER)[0], 7);
+        vm.prank(OWNER);
+        certificate.safeMint(USER, 8);
+        assertEq(certificate.getIdsByUser(USER)[0], 7);
+        assertEq(certificate.getIdsByUser(USER)[1], 8);
+        vm.startPrank(OWNER);
+        certificate.safeMint(makeAddr("other"), 9);
+        certificate.safeMint(USER, 11);
+        vm.stopPrank();
+        assertEq(certificate.getIdsByUser(USER)[2], 11);
+    }
 }

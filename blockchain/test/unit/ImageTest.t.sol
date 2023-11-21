@@ -71,6 +71,14 @@ contract ImageTest is Test {
         assertEq(image.getUri(), BASE_URI_STRING);
     }
 
+    function testTokenURIGood() public {
+        vm.startPrank(OWNER);
+        image.safeMint(USER);
+        vm.stopPrank();
+        assertEq(image.tokenURI(0), BASE_URI_STRING);
+        assertEq(image.tokenURI(42), BASE_URI_STRING);
+    }
+
     function testTokenOfOwnerByIndexGood() public {
         vm.prank(OWNER);
         image.safeMint(USER);
