@@ -67,13 +67,15 @@ const Collection = ({ imageAddresses }: Props) => {
             {!imageIsLoading && !certificateIsLoading && display == "Images" && Object.keys(imagesList).length > 0 && (
                 <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>
                     {Object.keys(imagesList).map((imageAddress, index) => {
+                        let liElements = []
                         for (let i = 0; i < imagesList[imageAddress as `0x${string}`].length; i++) {
-                            return (
+                            liElements.push(
                                 <li key={index}>
                                     <OwnedCard imageAddress={imageAddress as `0x${string}`} imageId={imagesList[imageAddress as `0x${string}`][i]} />
                                 </li>
                             )
                         }
+                        return liElements
                     })}
                 </ul>
             )}
@@ -83,13 +85,15 @@ const Collection = ({ imageAddresses }: Props) => {
             {!imageIsLoading && !certificateIsLoading && display == "Certificates" && Object.keys(certificatesList).length > 0 && (
                 <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>
                     {Object.keys(certificatesList).map((certificateAddress, index) => {
+                        let liElements = []
                         for (let i = 0; i < certificatesList[certificateAddress as `0x${string}`].length; i++) {
-                            return (
+                            liElements.push(
                                 <li key={index}>
                                     <OwnedCard imageAddress={certificateAddress as `0x${string}`} imageId={certificatesList[certificateAddress as `0x${string}`][i]} />
                                 </li>
                             )
                         }
+                        return liElements
                     })}
                 </ul>
             )}
