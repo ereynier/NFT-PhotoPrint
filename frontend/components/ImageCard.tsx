@@ -55,7 +55,7 @@ const ImageCard = ({ imageData: { imageAddress, imageSrc, imageMaxSupply, imageT
                 <div className='flex items-center justify-between'>
                     {displayId && (
                         <div className='flex flex-row gap-1'>
-                            <p>Nb: {String(Number(imageId) + 1)}/{String(imageMaxSupply)}</p>
+                            <p># {String(Number(imageId) + 1)}/{String(imageMaxSupply)}</p>
                             <TooltipProvider>
                                 <Tooltip>
                                     <TooltipTrigger>
