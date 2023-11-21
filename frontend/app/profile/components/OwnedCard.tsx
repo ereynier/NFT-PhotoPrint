@@ -5,10 +5,13 @@ import ImageABI from "@/utils/abi/Image.abi.json"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import ImageCard from '@/components/ImageCard'
+import LockDialog from './LockDialog'
 
 interface Props {
     imageAddress: `0x${string}`
     imageId: number
+    locker?: boolean
+    refreshImages?: () => void
 }
 
 interface ImageData {
@@ -24,7 +27,7 @@ interface ImageData {
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 
-const OwnedCard = ({ imageAddress, imageId }: Props) => {
+const OwnedCard = ({ imageAddress, imageId, locker, refreshImages }: Props) => {
 
     const [imageData, setImageData] = useState<ImageData>({
         imageAddress: imageAddress,
@@ -89,7 +92,7 @@ const OwnedCard = ({ imageAddress, imageId }: Props) => {
             {status === "success" && imageAddress && (
                 <div>
                     <ImageCard imageData={imageData} displayId={true}>
-                        {/* <BuyDialog imageData={imageData} allowedTokens={allowedTokens} refetchImageDatas={refetchImageDatas} /> */}
+                        {locker && <LockDialog imageData={imageData} refreshImages={refreshImages}/>}
                     </ImageCard>
                 </div>
             )}

@@ -7,6 +7,7 @@ import OwnedCard from './OwnedCard'
 import { Button } from '@/components/ui/button'
 import { Switch } from "@/components/ui/switch"
 import { Label } from '@/components/ui/label'
+import { Separator } from '@/components/ui/separator'
 
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -21,7 +22,7 @@ const Collection = ({ imageAddresses }: Props) => {
     const [certificateIsLoading, setCertificateIsLoading] = useState(true)
     const [imagesList, setImagesList] = useState<{ [key: `0x${string}`]: number[] }>({})
     const [certificatesList, setCertificatesList] = useState<{ [key: `0x${string}`]: number[] }>({})
-    const [display, setDisplay] = useState<'Images' | 'Certificates'>('Images')
+    const [display, setDisplay] = useState<'NFTs' | 'Certificates'>('NFTs')
     const { address, isConnected } = useAccount()
 
     const getImagesIdByUser = async () => {
@@ -39,10 +40,10 @@ const Collection = ({ imageAddresses }: Props) => {
     }
 
     const handleChangeDisplay = () => {
-        if (display == 'Images') {
+        if (display == 'NFTs') {
             setDisplay('Certificates')
         } else {
-            setDisplay('Images')
+            setDisplay('NFTs')
         }
     }
 
@@ -64,14 +65,24 @@ const Collection = ({ imageAddresses }: Props) => {
                     </div>
                 </div>
             )}
-            {!imageIsLoading && !certificateIsLoading && display == "Images" && Object.keys(imagesList).length > 0 && (
+            <div className='flex w-full items-center justify-center'>
+                <Separator className='w-1/3 bg-slate-300'/>
+            </div>
+            <div className='flex items-center justify-center p-2'>
+                {/* TODO: */}
+                Locked NFT
+            </div>
+            <div className='flex w-full items-center justify-center mb-4'>
+                <Separator className='w-1/2 bg-slate-300'/>
+            </div>
+            {!imageIsLoading && !certificateIsLoading && display == "NFTs" && Object.keys(imagesList).length > 0 && (
                 <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>
                     {Object.keys(imagesList).map((imageAddress, index) => {
                         let liElements = []
                         for (let i = 0; i < imagesList[imageAddress as `0x${string}`].length; i++) {
                             liElements.push(
                                 <li key={index}>
-                                    <OwnedCard imageAddress={imageAddress as `0x${string}`} imageId={imagesList[imageAddress as `0x${string}`][i]} />
+                                    <OwnedCard imageAddress={imageAddress as `0x${string}`} imageId={imagesList[imageAddress as `0x${string}`][i]} locker={true} refreshImages={getImagesIdByUser}/>
                                 </li>
                             )
                         }
@@ -79,7 +90,7 @@ const Collection = ({ imageAddresses }: Props) => {
                     })}
                 </ul>
             )}
-            {!imageIsLoading && !certificateIsLoading && display == "Images" && Object.keys(imagesList).length == 0 && (
+            {!imageIsLoading && !certificateIsLoading && display == "NFTs" && Object.keys(imagesList).length == 0 && (
                 <p className='flex items-center justify-center text-xl p-10'>{"You don't own any NFTs yet"}</p>
             )}
             {!imageIsLoading && !certificateIsLoading && display == "Certificates" && Object.keys(certificatesList).length > 0 && (

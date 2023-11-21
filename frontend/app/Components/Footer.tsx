@@ -36,10 +36,10 @@ const Footer = () => {
                     </Link>
                 </div>
             </div>
-            <div className="pb-2">
-                <p className="text-center">
+            <div className="pb-2 flex justify-center">
+                <Link href='https://ereynier.me' target='_blank' className=" text-center w-fit">
                     @Estéban Reynier
-                </p>
+                </Link>
             </div>
         </footer>
     )
