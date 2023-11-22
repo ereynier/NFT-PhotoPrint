@@ -1,6 +1,7 @@
 import { chain } from "@/utils/chains";
 import { readContracts } from "wagmi";
 import ImageABI from "@/utils/abi/Image.abi.json"
+import PrinterABI from "@/utils/abi/Printer.abi.json"
 import CertificateABI from "@/utils/abi/Certificate.abi.json"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 
@@ -66,4 +67,26 @@ export async function getCertificatesByUser(imageAddresses: `0x${string}`[], use
         }
     }
     return data
+}
+
+export async function getImageLockedByUser(userAddress: `0x${string}`, printerAddress: `0x${string}`) {
+    const data = await readContracts({
+        contracts: [
+            {
+                address: printerAddress as `0x${string}`,
+                abi: PrinterABI as any,
+                functionName: 'getImageLockedByUser',
+                chainId: chain.id,
+                args: [userAddress]
+            },
+        ]
+    }) as any
+    return data[0].result as unknown as [
+        imageAddress: `0x${string}`,
+        imageId: number,
+        printed: boolean,
+        timestampLock: number,
+        cryptedOrderId: string,
+        owner: `0x${string}`
+    ]
 }

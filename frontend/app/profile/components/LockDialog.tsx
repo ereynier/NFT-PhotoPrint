@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
+import PrinterABI from "@/utils/abi/Printer.abi.json"
 import ImageABI from "@/utils/abi/Image.abi.json"
 
 import {
@@ -14,10 +15,12 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button'
-import { useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi'
+import { useAccount, useContractEvent, useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi'
 import { chain } from '@/utils/chains'
+import { getImageLockedByUser } from './getNFTsByUser'
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const LOCKING_PERIOD = Number(process.env.NEXT_PUBLIC_LOCKING_PERIOD) / 7 / 24 / 3600 || 0
 
 interface ImageData {
     imageAddress: `0x${string}`
@@ -39,6 +42,8 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
     const [open, setOpen] = React.useState(false)
     const [allowed, setAllowed] = React.useState<boolean>(false)
     const [printerAddress, setPrinterAddress] = React.useState<`0x${string}` | null>(null)
+    const { isConnected, address } = useAccount()
+    const [imageLocked, setImageLocked] = React.useState<boolean>(false)
 
     // GET PRINTER ADDRESS
     const { data: printerAddressData, status: printerAddressStatus } = useContractRead({
@@ -48,6 +53,15 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         chainId: chain.id
     }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
 
+    // GET LOCKED NFT
+    const getNFTLocked = async () => {
+        const data = await getImageLockedByUser(address as `0x${string}`, printerAddress as `0x${string}`)
+        if (data[0] != "0x0000000000000000000000000000000000000000") {
+            setImageLocked(true)
+        } else {
+            setImageLocked(false)
+        }
+    }
 
     // GET APPROVED FOR NFT
     const { data: approvedData, status: approvedStatus, refetch: refetchApproved } = useContractRead({
@@ -101,16 +115,40 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         }
     }
 
+    useContractEvent({
+        address: printerAddress as `0x${string}`,
+        abi: PrinterABI,
+        eventName: 'ImageLocked',
+        listener(log: any) {
+            console.log(log[0]["args"]["user"], address)
+            if (log[0]["args"]["user"] == address) {
+                getNFTLocked()
+            }
+        },
+    })
+
+    useContractEvent({
+        address: printerAddress as `0x${string}`,
+        abi: PrinterABI,
+        eventName: 'ImageUnlocked',
+        listener(log: any) {
+            if (log[0]["args"]["user"] == address) { 
+                getNFTLocked()
+            }
+        },
+    })
+
     useEffect(() => {
         if (printerAddressData && !printerAddress) {
             setPrinterAddress(printerAddressData)
-            console.log("Printer address: " + printerAddressData)
         }
         if (approvedData && printerAddress) {
             setAllowed(approvedData == printerAddress)
-            console.log(approvedData)
         }
-    }, [approvedData, printerAddressData, printerAddress])
+        if (isConnected && printerAddress) {
+            getNFTLocked()
+        }
+    }, [approvedData, printerAddressData, printerAddress, isConnected])
 
     const continueDisplay = () => {
         if (approvedStatus == "success" && printerAddressStatus == "success") {
@@ -129,7 +167,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
     return (
         <AlertDialog open={open}>
             <AlertDialogTrigger asChild onClick={() => setOpen(true)}>
-                <Button className='w-full mx-4 rounded-t-none'>Lock to Print</Button>
+                <Button disabled={imageLocked} className='w-full mx-4 rounded-t-none'>Lock to Print</Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
@@ -139,7 +177,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
                         <br />
                         {`Once locked, you can request a physical copy of the NFT and an NFT certificate. The original NFT will be burnt.`}
                         <br />
-                        {`If you haven't requested a printout within ${7} days, the NFT will be unlocked.`}
+                        {`If you haven't requested a printout within ${LOCKING_PERIOD} days, the NFT will be unlocked.`}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

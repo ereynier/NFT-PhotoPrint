@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from "@/components/ui/switch"
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
+import LockedNFT from './LockedNFT'
 
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -68,11 +69,11 @@ const Collection = ({ imageAddresses }: Props) => {
             <div className='flex w-full items-center justify-center'>
                 <Separator className='w-1/3 bg-slate-300'/>
             </div>
-            <div className='flex items-center justify-center p-2'>
-                {/* TODO: */}
-                Locked NFT
+            <div className='flex flex-col items-center justify-center p-2'>
+                <h2 className='text-xl mb-2'>NFT Printer</h2>
+                <LockedNFT refreshImages={getImagesIdByUser} refreshCertificates={getCertificatesIdByUser} />
             </div>
-            <div className='flex w-full items-center justify-center mb-4'>
+            <div className='flex w-full items-center justify-center my-4'>
                 <Separator className='w-1/2 bg-slate-300'/>
             </div>
             {!imageIsLoading && !certificateIsLoading && display == "NFTs" && Object.keys(imagesList).length > 0 && (
@@ -91,7 +92,7 @@ const Collection = ({ imageAddresses }: Props) => {
                 </ul>
             )}
             {!imageIsLoading && !certificateIsLoading && display == "NFTs" && Object.keys(imagesList).length == 0 && (
-                <p className='flex items-center justify-center text-xl p-10'>{"You don't own any NFTs yet"}</p>
+                <p className='text-center text-neutral-600 text-xl p-10'>{"You don't own any NFTs yet"}</p>
             )}
             {!imageIsLoading && !certificateIsLoading && display == "Certificates" && Object.keys(certificatesList).length > 0 && (
                 <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>
@@ -109,7 +110,7 @@ const Collection = ({ imageAddresses }: Props) => {
                 </ul>
             )}
             {!imageIsLoading && !certificateIsLoading && display == "Certificates" && Object.keys(certificatesList).length == 0 && (
-                <p className='flex items-center justify-center text-xl p-10'>{"You don't own any Certificates yet"}</p>
+                <p className='text-center text-neutral-600 text-xl p-10'>{"You don't own any Certificates yet"}</p>
             )}
         </div>
     )
