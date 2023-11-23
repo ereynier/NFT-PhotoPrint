@@ -167,7 +167,7 @@ const PrintButton = ({ lockedData }: PrintButtonProps) => {
     }
 
     const { data: signData, isError: signIsError, isLoading: signIsLoading, isSuccess: signIsSuccess, signMessage } = useSignMessage({
-        message: `${lockedData.imageAddress}${lockedData.imageId}${lockedData.timestampLock}`,
+        message: `${lockedData.imageAddress}${lockedData.imageId}`,
         onSuccess: (data) => {
             setSignedMessage(data)
             sendForm()

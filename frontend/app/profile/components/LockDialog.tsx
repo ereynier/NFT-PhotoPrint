@@ -172,13 +172,13 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
             </AlertDialogTrigger>
             <AlertDialogContent>
                 <AlertDialogHeader>
-                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                     <AlertDialogDescription>
                         {`You can only lock one NFT at a time.`}
                         <br />
                         {`Once locked, you can request a physical copy of the NFT and an NFT certificate. The original NFT will be burnt.`}
                         <br />
-                        {`If you haven't requested a printout within ${LOCKING_PERIOD} days, the NFT will be unlocked.`}
+                        {`You can unlock the NFT if you change your mind before validating the order.`}
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>

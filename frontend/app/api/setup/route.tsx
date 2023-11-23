@@ -108,7 +108,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     }
 
     console.log(lockedData)
-    const message = `${lockedData.imageAddress}${lockedData.imageId}${lockedData.timestampLock}`
+    const message = `${lockedData.imageAddress}${lockedData.imageId}`
     console.log(message)
     const recoveredAddress = await publicClient.verifyMessage({
         address: address as `0x${string}`,
@@ -120,7 +120,11 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({ success: false, status: 400, error: "Invalid signature" }, { status: 400 });
     }
 
-    // TODO: embryonic commande si pas de commande existante
+    // TODO:
+    // verifier si commande existante
+    // si commande existante embroynic, cancel commande existante
+    // creer commande
+    // envoyer crypted OrderId au user
 
     return NextResponse.json({ success: true, data: "datas" });
 }
