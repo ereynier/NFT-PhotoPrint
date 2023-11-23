@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button'
 import { useAccount, useContractEvent, useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi'
 import { chain } from '@/utils/chains'
 import { getImageLockedByUser } from './getNFTsByUser'
+import { zeroAddress } from 'viem'
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = Number(process.env.NEXT_PUBLIC_LOCKING_PERIOD) / 7 / 24 / 3600 || 0
@@ -56,7 +57,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
     // GET LOCKED NFT
     const getNFTLocked = async () => {
         const data = await getImageLockedByUser(address as `0x${string}`, printerAddress as `0x${string}`)
-        if (data[0] != "0x0000000000000000000000000000000000000000") {
+        if (data[0] != zeroAddress) {
             setImageLocked(true)
         } else {
             setImageLocked(false)

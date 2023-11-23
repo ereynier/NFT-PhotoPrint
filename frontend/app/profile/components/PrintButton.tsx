@@ -28,9 +28,22 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 
+import { useAccount, useSignMessage } from 'wagmi'
 import React from 'react'
 
+const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:3000"
+
+interface LockedData {
+    imageAddress: `0x${string}`,
+    imageId: number,
+    printed: boolean,
+    timestampLock: number,
+    cryptedOrderId: string,
+    owner: `0x${string}`
+}
+
 import countries from "@utils/getCountries"
+import { zeroAddress } from 'viem'
 // const frameworks = [
 //     {
 //       value: "next.js",
@@ -95,7 +108,11 @@ export function Combobox({ setExternalValue }: ComoboxProps) {
     )
 }
 
-const PrintButton = () => {
+interface PrintButtonProps {
+    lockedData: LockedData
+}
+
+const PrintButton = ({ lockedData }: PrintButtonProps) => {
 
     const [firstname, setFirstname] = React.useState('')
     const [lastname, setLastname] = React.useState('')
@@ -105,8 +122,12 @@ const PrintButton = () => {
     const [town, setTown] = React.useState('')
     const [county, setCounty] = React.useState('')
     const [postcode, setPostcode] = React.useState('')
-    const [country, setCountry] = React.useState('') // TODO: list of countries
+    const [country, setCountry] = React.useState('')
     const [phone, setPhone] = React.useState('')
+
+    const { isConnected, address } = useAccount()
+
+    const [signedMessage, setSignedMessage] = React.useState<`0x${string}` | undefined>(undefined)
 
 
     const handleLastnameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,27 +162,60 @@ const PrintButton = () => {
         setPostcode(e.target.value)
     }
 
-    const handleCountryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCountry(e.target.value)
-    }
-
     const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPhone(e.target.value)
     }
 
+    const { data: signData, isError: signIsError, isLoading: signIsLoading, isSuccess: signIsSuccess, signMessage } = useSignMessage({
+        message: `${lockedData.imageAddress}${lockedData.imageId}${lockedData.timestampLock}`,
+        onSuccess: (data) => {
+            setSignedMessage(data)
+            sendForm()
+        },
+        onError: (err) => {
+            console.log(err)
+        }
+    })
+
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
+        signMessage()
+    }
+
+    const sendForm = () => {
         console.log('submit')
-        console.log(firstname)
-        console.log(lastname)
-        console.log(email)
-        console.log(addressLine1)
-        console.log(addressLine2)
-        console.log(town)
-        console.log(county)
-        console.log(postcode)
-        console.log(country)
-        console.log(phone)
+        if (firstname === '' || lastname === '' || email === '' || addressLine1 === '' || town === '' || postcode === '' || country === '' || phone === '' || address === undefined || signedMessage === undefined) {
+            console.log('error')
+            return
+        }
+        if (firstname.length > 50 || lastname.length > 50 || email.length > 50 || addressLine1.length > 50 || addressLine2.length > 50 || town.length > 50 || county.length > 50 || postcode.length > 50 || country.length > 50 || phone.length > 50) {
+            console.log('error')
+            return
+        }
+        fetch(`${BASEURL}/api/setup`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                firstname,
+                lastname,
+                email,
+                addressLine1,
+                addressLine2,
+                town,
+                county,
+                postcode,
+                country,
+                phone,
+                address,
+                signedMessage
+            })
+        }).then(res => {
+            if (res.status === 200) {
+                // TODO:
+            }
+        }).catch(err => console.log(err))
     }
 
     return (
@@ -233,9 +287,8 @@ const PrintButton = () => {
                                 <Label htmlFor="country" className="text-right">
                                     Country*
                                 </Label>
-                                {/* <Input required id="country" onChange={(e) => handleCountryChange(e)} placeholder='France' value={country} className="col-span-3" /> */}
                                 <Combobox setExternalValue={setCountry} />
-                                <Input required  id="country" placeholder='France' value={country} className="h-0 w-0 opacity-0" />
+                                <Input required defaultValue={""} id="country" placeholder='France' value={country} className="h-0 w-0 opacity-0" />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="phone" className="text-right">

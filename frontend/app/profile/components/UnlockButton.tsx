@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/tooltip"
 import { useContractWrite } from 'wagmi'
 import { chain } from '@/utils/chains'
+import { zeroAddress, zeroHash } from 'viem'
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = process.env.NEXT_PUBLIC_LOCKING_PERIOD || 604800
@@ -78,7 +79,7 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
         if (isDisabled()) {
             return `You have to wait ${Math.floor(((Number(lockedData.timestampLock) + Number(LOCKING_PERIOD)) - Date.now() / 1000) / 3600)} hours before unlocking this NFT`
         }
-        if (lockedData.cryptedOrderId != "0x0000000000000000000000000000000000000000000000000000000000000000") {
+        if (lockedData.cryptedOrderId != zeroHash) {
             return `You have to clear the embryonic order before unlocking this NFT`
         }
         return `You can unlock this NFT`
@@ -99,7 +100,7 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        {lockedData.cryptedOrderId == "0x0000000000000000000000000000000000000000000000000000000000000000" ? (
+                        {lockedData.cryptedOrderId == zeroHash ? (
                             <Button disabled={isDisabled()} className='w-full rounded-t-none rounded-l-none bg-slate-600 hover:bg-slate-500' onClick={() => handleUnlock()}>Unlock</Button>
                         ) : (
                             <Button disabled={isDisabled()} className='w-full rounded-t-none rounded-l-none bg-slate-600 hover:bg-slate-500' onClick={() => handleClear()}>Clear order</Button>

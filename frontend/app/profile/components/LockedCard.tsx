@@ -104,7 +104,7 @@ const LockedCard = ({ lockedData: { imageAddress, imageId }, lockedData, refresh
                 <div>
                     <ImageCard imageData={imageData} displayId={true}>
                         <div className='flex w-full'>
-                            <PrintButton />
+                            <PrintButton lockedData={lockedData} />
                             <UnlockButton refreshImages={refreshImages} lockedData={lockedData} refreshLockedData={refreshLockedData} />
                         </div>
                     </ImageCard>

@@ -8,6 +8,7 @@ import { getImageLockedByUser } from './getNFTsByUser'
 import LockedCard from './LockedCard'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
+import { zeroAddress } from 'viem'
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = process.env.NEXT_PUBLIC_LOCKING_PERIOD || 604800
@@ -74,13 +75,13 @@ const LockedNFT = ({refreshImages, refreshCertificates}: Props) => {
     return (
         <div>
             {imageLockedIsLoading && <p>Loading...</p>}
-            {!imageLockedIsLoading && imageLocked && imageLocked["imageAddress"] == "0x0000000000000000000000000000000000000000" && (
+            {!imageLockedIsLoading && imageLocked && imageLocked["imageAddress"] == zeroAddress && (
                 <div className='flex flex-row items-center justify-center'>
                     <p className='flex items-center justify-center text-sm text-neutral-700 p-2'>{"No NFT locked"}</p>
                     <Image onClick={() => handleUpdate()} src="/update.svg" alt="update" width="20" height="20" className='p-1 border-[1px] border-neutral-200 cursor-pointer w-fit h-fit rounded-lg hover:bg-neutral-200' />
                 </div>
             )}
-            {!imageLockedIsLoading && imageLocked && imageLocked["imageAddress"] != "0x0000000000000000000000000000000000000000" && (
+            {!imageLockedIsLoading && imageLocked && imageLocked["imageAddress"] != zeroAddress && (
                 <div>
                     <LockedCard
                         lockedData={imageLocked}
