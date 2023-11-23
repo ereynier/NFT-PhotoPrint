@@ -288,7 +288,7 @@ const PrintButton = ({ lockedData }: PrintButtonProps) => {
                                     Country*
                                 </Label>
                                 <Combobox setExternalValue={setCountry} />
-                                <Input required defaultValue={""} id="country" placeholder='France' value={country} className="h-0 w-0 opacity-0" />
+                                <Input required onChange={() => {}} id="country" placeholder='France' value={country} className="h-0 w-0 opacity-0" />
                             </div>
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="phone" className="text-right">

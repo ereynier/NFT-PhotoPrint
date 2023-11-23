@@ -3,9 +3,11 @@ import { publicClient } from "@utils/client";
 import countries from "@utils/getCountries"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import PrinterABI from "@/utils/abi/Printer.abi.json"
-import { zeroAddress, zeroHash } from "viem";
+import { keccak256, toHex, zeroAddress, zeroHash } from "viem";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const CREATIVEHUB_BASEURL = process.env.CREATIVEHUB_BASEURL
+const CREATIVEHUB_API_KEY = process.env.CREATIVEHUB_API_KEY
 
 interface LockedData {
     imageAddress: `0x${string}`,
@@ -14,6 +16,41 @@ interface LockedData {
     timestampLock: number,
     cryptedOrderId: string,
     owner: `0x${string}`
+}
+
+enum OrderState {
+    ProcessingPayment,
+    NewOrder,
+    ImageFileReceived,
+    Printed,
+    InFraming,
+    InMounting,
+    ToBeRedone,
+    MountingStarted,
+    FramingComplete,
+    FramingStarted,
+    MountingComplete,
+    Dispatched,
+    ReadyForCollection,
+    Collected,
+    Cancelled,
+    ForReturn,
+    ReturnReceived,
+    RefundInitiated,
+    PaymentFailed,
+    Packed,
+    Delivered,
+    ShippingFailed,
+    OnHold,
+    Dispatch,
+    ASFFraming,
+    DispatchQC,
+    CardRequired,
+    OrderFailed,
+    DuplicateOrder,
+    EmbryonicOrder,
+    SuspendedOrder,
+    NotSet
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
@@ -109,7 +146,7 @@ export async function POST(req: Request): Promise<NextResponse> {
 
     console.log(lockedData)
     const message = `${lockedData.imageAddress}${lockedData.imageId}`
-    console.log(message)
+
     const recoveredAddress = await publicClient.verifyMessage({
         address: address as `0x${string}`,
         message: message,
@@ -120,10 +157,206 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({ success: false, status: 400, error: "Invalid signature" }, { status: 400 });
     }
 
-    // TODO:
-    // verifier si commande existante
-    // si commande existante embroynic, cancel commande existante
+
+
+    // // verifier si commande existante
+    // const orders = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/orders/query`, {
+    //     method: 'POST',
+    //     headers: {
+    //         'Content-Type': 'application/json',
+    //         'accept': 'application/json',
+    //         'Authorization': `ApiKey ${CREATIVEHUB_API_KEY}`
+    //     },
+    //     body: JSON.stringify({
+    //         "Page": 1,
+    //         "PageSize": 10,
+    //         "Filter": {
+    //             "LogicalOperator": "And",
+    //             "FilterDescriptors": [
+    //                 {
+    //                     "Member": "Externalreference",
+    //                     "PredicateOperator": "IsEqualTo",
+    //                     "Value": "string" //TODO: hashImageAddress + imageId + userAddress
+    //                 },
+    //                 {
+    //                     "Member": "OrderState",
+    //                     "PredicateOperator": "IsNotEqualTo",
+    //                     "Value": OrderState.Cancelled
+    //                 }
+    //             ]
+    //         },
+    //         "Sorts": [
+    //             {
+    //                 "Member": "Id",
+    //                 "SortDirection": "Ascending"
+    //             }
+    //         ]
+    //     })
+    // })
+    //     .then(response => response.json())
+    //     .then(data => data)
+    //     .catch(err => {console.error(err)) as { Data: any[], Total: number } // handle error
+
+    // console.log(orders)
+    // // si commande existante embroynic, cancel commande existante
+    // for (const order of orders["Data"]) {
+    //     if (order["OrderState"] == "EmbryonicOrder") {
+    //         const deleted = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/orders/${order["Id"]}`, {
+    //             method: 'DELETE',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'accept': 'application/json',
+    //                 'Authorization': `ApiKey ${CREATIVEHUB_API_KEY}`
+    //             }
+    //         }).catch(err => console.error(err)) // handle error
+    //     }
+    // }
+
+
+    //get productId
+    const productId = await publicClient.readContract({
+        address: CONTRACT_ADDRESS,
+        abi: ImageManagerABI,
+        functionName: 'getPrintId',
+        args: [lockedData.imageAddress],
+    })
+
+    //get printOptionId
+    const printOptionId = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/products/${35846}`, { //TODO: CHANGE 35846 TO productId
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+            'Authorization': `ApiKey ${CREATIVEHUB_API_KEY}`
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data["PrintOptions"] != undefined && data["PrintOptions"].length > 0) {
+                return data["PrintOptions"][0]["Id"]
+            } else {
+                console.error("PrintOptions array is empty or undefined")
+                return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+            }
+        })
+        .catch(err => {
+            console.error(err)
+            return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+        })
+
+    if (typeof printOptionId != "number") {
+        console.error("printOptionId is not a number")
+        return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+    }
+
+
+    // get country datas
+    const countriesFromApi = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/countries/query`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+            'Authorization': `ApiKey ${CREATIVEHUB_API_KEY}`
+        },
+        body: JSON.stringify({
+            "Page": 1,
+            "PageSize": 350,
+            "Filter": {},
+            "Sorts": [
+                {
+                    "Member": "Name",
+                    "SortDirection": "Ascending"
+                }
+            ]
+        })
+    })
+        .then(response => response.json())
+        .then(data => data["Data"])
+        .catch(err => {
+            console.error(err)
+            return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+        }) as { Id: string, Name: string, Code: string }[]
+
+
+    let countryData;
+    try {
+        countryData = countriesFromApi.find(countryObj => countryObj["Name"].toLowerCase() === country)
+    } catch (error) {
+        console.error(error)
+        return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+    }
+    if (countryData == undefined) {
+        return NextResponse.json({ success: false, status: 400, error: "Country not existing" }, { status: 400 });
+    }
+
+    // externalReference = hash ImageAddress + imageId + userAddress
+    const externalReference = keccak256(toHex(`${lockedData.imageAddress}${Number(lockedData.imageId)}${address}`))
+
+
+
+    console.log(externalReference)
+    console.log(firstname)
+    console.log(lastname)
+    console.log(email)
+    console.log(addressLine1)
+    console.log(addressLine2)
+    console.log(town)
+    console.log(county)
+    console.log(postcode)
+    console.log(countryData)
+    console.log(phone)
+    console.log(productId)
+    console.log(printOptionId)
+
+
     // creer commande
+    const embryonic = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/orders/embryonic`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+            'Authorization': `ApiKey ${CREATIVEHUB_API_KEY}`
+        },
+        body: JSON.stringify({
+            "Id": 0,
+            "ExternalReference": externalReference,
+            "FirstName": firstname,
+            "LastName": lastname,
+            "Email": email,
+            "MessageToLab": "",
+            "ShippingAddress": {
+                "FirstName": firstname,
+                "LastName": lastname,
+                "Line1": addressLine1,
+                "Line2": addressLine2,
+                "Town": town,
+                "County": county,
+                "PostCode": postcode,
+                "CountryId": countryData.Id,
+                "CountryCode": countryData.Code,
+                "CountryName": countryData.Name,
+                "PhoneNumber": phone
+            },
+            "OrderItems": [
+                {
+                    "Id": 1,
+                    "ProductId": Number(35846), //TODO: CHANGE 35846 TO productId
+                    "PrintOptionId": printOptionId,
+                    "Quantity": 1,
+                    "ExternalReference": "",
+                    "ExternalSku": ""
+                }
+            ]
+        })
+    })
+        .then(response => response.json())
+        .then(data => data)
+        .catch(err => {
+            console.error(err)
+            return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+        })
+    console.log(embryonic);
+
     // envoyer crypted OrderId au user
 
     return NextResponse.json({ success: true, data: "datas" });
