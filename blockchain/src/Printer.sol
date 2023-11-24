@@ -36,7 +36,7 @@ contract Printer is Ownable, ReentrancyGuard {
         uint256 imageId;
         bool printed;
         uint256 timestampLock;
-        bytes32 cryptedOrderId;
+        string cryptedOrderId;
         address owner;
     }
 
@@ -48,7 +48,7 @@ contract Printer is Ownable, ReentrancyGuard {
 
     /* ========== Events ========== */
 
-    event ConfirmOrder(address indexed user, bytes32 cryptedOrderId);
+    event ConfirmOrder(address indexed user, string cryptedOrderId);
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
     event ImageUnlocked(address indexed user, address imageAddress, uint256 imageId);
     event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
@@ -104,7 +104,7 @@ contract Printer is Ownable, ReentrancyGuard {
     function unlock(address user) external onlyOwner tokenLocked(user) nonReentrant {
         if (
             _nftByUser[user].printed || _nftByUser[user].timestampLock != 0
-                || _nftByUser[user].cryptedOrderId != ""
+                || keccak256(abi.encodePacked(_nftByUser[user].cryptedOrderId)) != keccak256(abi.encodePacked(""))
         ) {
             revert Printer__NFTCantBeUnlocked(user);
         }
@@ -112,7 +112,7 @@ contract Printer is Ownable, ReentrancyGuard {
         emit ImageUnlocked(user, _nftByUser[user].imageAddress, _nftByUser[user].imageId);
     }
 
-    function confirmOrder(address user, bytes32 cryptedOrderId) external onlyOwner tokenLocked(user) nonReentrant {
+    function confirmOrder(address user, string memory cryptedOrderId) external onlyOwner tokenLocked(user) nonReentrant {
         if (_nftByUser[user].printed) {
             revert Printer__CommandIsPrinted(user);
         }
@@ -197,7 +197,7 @@ contract Printer is Ownable, ReentrancyGuard {
             uint256 imageId,
             bool printed,
             uint256 timestampLock,
-            bytes32 cryptedOrderId,
+            string memory cryptedOrderId,
             address owner
         )
     {

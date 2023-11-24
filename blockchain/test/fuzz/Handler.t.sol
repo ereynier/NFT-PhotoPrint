@@ -105,9 +105,9 @@ contract Handler is Test {
     }
 
     function unlockImage() external {
-        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock, bytes32 cryptedOrderId,) =
+        (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock, string memory cryptedOrderId,) =
             Printer(printer).getImageLockedByUser(address(this));
-        if (imageAddress == address(0) || printed || timestampLock == 0 || cryptedOrderId != bytes32(0)) {
+        if (imageAddress == address(0) || printed || timestampLock == 0 || keccak256(abi.encodePacked(cryptedOrderId)) != keccak256(abi.encodePacked(""))) {
             return;
         }
         imageManager.unlockImage();
@@ -120,7 +120,7 @@ contract Handler is Test {
         if (imageAddress == address(0) || printed || timestampLock != 0) {
             return;
         }
-        imageManager.confirmOrder(bytes32("test"));
+        imageManager.confirmOrder(string("test"));
     }
 
     function clearOrderId() external {

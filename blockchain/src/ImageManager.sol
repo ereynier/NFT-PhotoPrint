@@ -127,7 +127,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         _printer.unlock(msg.sender);
     }
 
-    function confirmOrder(bytes32 cryptedOrderId) external nonReentrant {
+    function confirmOrder(string memory cryptedOrderId) external nonReentrant {
         _printer.confirmOrder(msg.sender, cryptedOrderId);
     }
 

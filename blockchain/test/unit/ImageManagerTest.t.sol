@@ -222,14 +222,14 @@ contract ImageManagerTest is Test {
             uint256 imageId_,
             bool printed_,
             uint256 timestampLock_,
-            bytes32 cryptedOrderId,
+            string memory cryptedOrderId,
             address owner
         ) = Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, imageAddress);
         assertEq(imageId_, 0);
         assertEq(printed_, false);
         assertEq(timestampLock_, block.timestamp);
-        assertEq(cryptedOrderId, bytes32("test"));
+        assertEq(cryptedOrderId, string("test"));
         assertEq(owner, USER_1);
         assertEq(image.ownerOf(0), printerAddress);
     }
@@ -255,14 +255,14 @@ contract ImageManagerTest is Test {
             uint256 imageId_,
             bool printed_,
             uint256 timestampLock_,
-            bytes32 cryptedOrderId,
+            string memory cryptedOrderId,
             address owner
         ) = Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, imageAddress);
         assertEq(imageId_, 0);
         assertEq(printed_, false);
         assertEq(timestampLock_, 0);
-        assertEq(cryptedOrderId, bytes32(""));
+        assertEq(cryptedOrderId, string(""));
         assertEq(owner, USER_1);
         assertEq(image.ownerOf(0), printerAddress);
     }
@@ -297,14 +297,14 @@ contract ImageManagerTest is Test {
             uint256 imageId_,
             bool printed_,
             uint256 timestampLock_,
-            bytes32 cryptedOrderId,
+            string memory cryptedOrderId,
             address owner
         ) = Printer(printerAddress).getImageLockedByUser(USER_1);
         assertEq(imageAddress_, address(0));
         assertEq(imageId_, 0);
         assertEq(printed_, false);
         assertEq(timestampLock_, 0);
-        assertEq(cryptedOrderId, bytes32(""));
+        assertEq(cryptedOrderId, string(""));
         assertEq(owner, address(0));
         assertEq(Certificate(imageManager.getCertificateByImage(imageAddress)).ownerOf(0), USER_1);
     }
