@@ -19,6 +19,7 @@ contract PrinterTest is Test {
 
     event ConfirmOrder(address indexed user, string cryptedOrderId);
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
+    event ImagePrinted(address indexed user, address imageAddress, uint256 imageId);
     event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
     event AdminChanged(address indexed admin);
 
@@ -333,8 +334,11 @@ contract PrinterTest is Test {
         printer.confirmOrder(USER, string("test"));
         (,, bool printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(printed, false);
-        vm.prank(ADMIN);
+        vm.startPrank(ADMIN);
+        vm.expectEmit(true, false, false, false);
+        emit ImagePrinted(USER, address(mockImage), 0);
         printer.setPrinted(USER);
+        vm.stopPrank();
         (,, printed,,,) = printer.getImageLockedByUser(USER);
         assertEq(printed, true);
     }

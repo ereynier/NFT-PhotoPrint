@@ -51,6 +51,7 @@ contract Printer is Ownable, ReentrancyGuard {
     event ConfirmOrder(address indexed user, string cryptedOrderId);
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
     event ImageUnlocked(address indexed user, address imageAddress, uint256 imageId);
+    event ImagePrinted(address indexed user, address imageAddress, uint256 imageId);
     event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
     event AdminChanged(address indexed admin);
 
@@ -155,6 +156,7 @@ contract Printer is Ownable, ReentrancyGuard {
             revert Printer__CommandIsNotSet(user);
         }
         _nftByUser[user].printed = true;
+        emit ImagePrinted(user, _nftByUser[user].imageAddress, _nftByUser[user].imageId);
     }
 
     function setAdmin(address admin) external onlyOwner {
