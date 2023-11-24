@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/tooltip"
 import { useContractWrite } from 'wagmi'
 import { chain } from '@/utils/chains'
-import { zeroAddress, zeroHash } from 'viem'
+import { emptyString } from '@/utils/contant'
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = process.env.NEXT_PUBLIC_LOCKING_PERIOD || 604800
 
 interface LockedData {
@@ -33,7 +33,7 @@ interface Props {
 const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) => {
     
     const { data: unlockImageData, isLoading: unlockImageIsLoading, write: unlockImageWrite } = useContractWrite({
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI as any,
         functionName: 'unlockImage',
         chainId: chain.id,
@@ -48,7 +48,7 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
     })
 
     const { data: clearOrderIdData, isLoading: clearOrderIdIsLoading, write: clearOrderIdWrite } = useContractWrite({
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI as any,
         functionName: 'clearOrderId',
         chainId: chain.id,
@@ -79,7 +79,7 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
         if (isDisabled()) {
             return `You have to wait ${Math.floor(((Number(lockedData.timestampLock) + Number(LOCKING_PERIOD)) - Date.now() / 1000) / 3600)} hours before unlocking this NFT`
         }
-        if (lockedData.cryptedOrderId != zeroHash) {
+        if (lockedData.cryptedOrderId != emptyString) {
             return `You have to clear the embryonic order before unlocking this NFT`
         }
         return `You can unlock this NFT`
@@ -100,10 +100,12 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        {lockedData.cryptedOrderId == zeroHash ? (
+                        {lockedData.cryptedOrderId == emptyString ? (
                             <Button disabled={isDisabled()} className='w-full rounded-t-none rounded-l-none bg-slate-600 hover:bg-slate-500' onClick={() => handleUnlock()}>Unlock</Button>
                         ) : (
-                            <Button disabled={isDisabled()} className='w-full rounded-t-none rounded-l-none bg-slate-600 hover:bg-slate-500' onClick={() => handleClear()}>Clear order</Button>
+                            <span className='w-full'>
+                                <Button disabled={isDisabled()} className='w-full rounded-t-none rounded-l-none bg-slate-600 hover:bg-slate-500' onClick={() => handleClear()}>Clear order</Button>
+                            </span>
                         )}
                     </TooltipTrigger>
                     <TooltipContent>

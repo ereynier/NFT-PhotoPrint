@@ -3,7 +3,7 @@ import { readContracts } from "wagmi";
 import ImageABI from "@/utils/abi/Image.abi.json"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 export async function getImageDatas(imageAddress: `0x${string}`) {
     const data = await readContracts({
@@ -37,14 +37,14 @@ export async function getImageDatas(imageAddress: `0x${string}`) {
                 args: []
             },
             {
-                address: CONTRACT_ADDRESS,
+                address: IMAGE_MANAGER_ADDRESS,
                 abi: ImageManagerABI as any,
                 functionName: 'getImagePriceInUsdInWei',
                 chainId: chain.id,
                 args: [imageAddress]
             },
             {
-                address: CONTRACT_ADDRESS,
+                address: IMAGE_MANAGER_ADDRESS,
                 abi: ImageManagerABI as any,
                 functionName: 'getAllowedTokens',
                 chainId: chain.id,

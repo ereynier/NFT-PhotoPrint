@@ -9,7 +9,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { chain } from '@/utils/chains'
 
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 interface ImageData {
     imageAddress: `0x${string}`
@@ -52,7 +52,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
         address: selectedToken as `0x${string}`,
         abi: erc20ABI,
         functionName: 'approve',
-        args: [CONTRACT_ADDRESS, BigInt(tokenAmount)],
+        args: [IMAGE_MANAGER_ADDRESS, BigInt(tokenAmount)],
         chainId: chain.id
     })
 
@@ -65,14 +65,14 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
     })
 
     // const { config: buyConfig, isError: isContractBuyError } = usePrepareContractWrite({
-    //     address: CONTRACT_ADDRESS,
+    //     address: IMAGE_MANAGER_ADDRESS,
     //     abi: ImageManagerABI,
     //     functionName: 'mint',
     //     args: [imageAddress, address, selectedToken]
     // })
 
     const { isLoading: buyIsLoading, write: buyWrite } = useContractWrite({
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'mint',
         args: [imageAddress, address, selectedToken],
@@ -108,7 +108,7 @@ const BuyButton = ({ imageData: { imageAddress, imagePrice, imageNextId, imageMa
 
     const handleBuy = () => {
         if (allowed < tokenAmount) {
-            console.log(`Approving ${CONTRACT_ADDRESS} for ${tokenAmount} ${selectedToken}`)
+            console.log(`Approving ${IMAGE_MANAGER_ADDRESS} for ${tokenAmount} ${selectedToken}`)
             approveWrite?.()
         } else {
             console.log(`Buying ${imageAddress} with ${tokenAmount} ${selectedToken}`)

@@ -6,7 +6,7 @@ import Collection from './Collection'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 const Profile = () => {
 
@@ -17,7 +17,7 @@ const Profile = () => {
   const { data, status } = useContractReads({
     contracts: [
       {
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI as any,
         functionName: 'getImagesAddresses',
         chainId: chain.id,

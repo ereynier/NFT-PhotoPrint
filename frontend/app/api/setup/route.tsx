@@ -3,11 +3,14 @@ import { publicClient } from "@utils/client";
 import countries from "@utils/getCountries"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import PrinterABI from "@/utils/abi/Printer.abi.json"
-import { keccak256, toHex, zeroAddress, zeroHash } from "viem";
+import { hexToString, keccak256, stringToHex, toHex, zeroAddress } from "viem";
+import CryptoJS from "crypto-js";
+import { emptyString } from "@/utils/contant";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const CREATIVEHUB_BASEURL = process.env.CREATIVEHUB_BASEURL
 const CREATIVEHUB_API_KEY = process.env.CREATIVEHUB_API_KEY
+const ENCRYPTION_SECRET = process.env.ENCRYPTION_SECRET || "secret"
 
 interface LockedData {
     imageAddress: `0x${string}`,
@@ -54,6 +57,10 @@ enum OrderState {
 }
 
 export async function POST(req: Request): Promise<NextResponse> {
+
+    if (ENCRYPTION_SECRET == "secret") {
+        return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+    }
 
     let body;
     try {
@@ -140,7 +147,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({ success: false, status: 400, error: "NFT already printed" }, { status: 400 });
     }
 
-    if (lockedData.cryptedOrderId != zeroHash) {
+    if (lockedData.cryptedOrderId != emptyString) {
         return NextResponse.json({ success: false, status: 400, error: "NFT already ordered" }, { status: 400 });
     }
 
@@ -222,7 +229,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     })
 
     //get printOptionId
-    const printOptionId = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/products/${35846}`, { //TODO: CHANGE 35846 TO productId
+    const printOptionId = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/products/${productId}`, { // test 35846
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -340,7 +347,7 @@ export async function POST(req: Request): Promise<NextResponse> {
             "OrderItems": [
                 {
                     "Id": 1,
-                    "ProductId": Number(35846), //TODO: CHANGE 35846 TO productId
+                    "ProductId": Number(productId), //test 35846
                     "PrintOptionId": printOptionId,
                     "Quantity": 1,
                     "ExternalReference": "",
@@ -357,7 +364,27 @@ export async function POST(req: Request): Promise<NextResponse> {
         })
     console.log(embryonic);
 
-    // envoyer crypted OrderId au user
+    if (embryonic == undefined || embryonic["Id"] == undefined) {
+        return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+    }
 
-    return NextResponse.json({ success: true, data: "datas" });
+    const orderId = embryonic["Id"]
+    let deliveryId = 0;
+    let lowestPrice = 100000;
+    for (const option of embryonic["DeliveryOptions"]) {
+        if (option["DeliveryChargeExcludingSalesTax"] < lowestPrice) {
+            lowestPrice = option["DeliveryChargeExcludingSalesTax"]
+            deliveryId = option["Id"]
+        }
+    }
+
+    if (deliveryId == 0) {
+        console.error("deliveryId is 0")
+        return NextResponse.json({ success: false, status: 500, error: "Internal server error" }, { status: 500 });
+    }
+
+    // envoyer crypted OrderId au user
+    const encrypted = CryptoJS.AES.encrypt(`${orderId}:${deliveryId}`, ENCRYPTION_SECRET).toString();
+
+    return NextResponse.json({ success: true, data: encrypted }, { status: 200 });
 }

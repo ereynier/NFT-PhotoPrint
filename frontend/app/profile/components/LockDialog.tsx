@@ -20,7 +20,7 @@ import { chain } from '@/utils/chains'
 import { getImageLockedByUser } from './getNFTsByUser'
 import { zeroAddress } from 'viem'
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = Number(process.env.NEXT_PUBLIC_LOCKING_PERIOD) / 7 / 24 / 3600 || 0
 
 interface ImageData {
@@ -48,7 +48,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
 
     // GET PRINTER ADDRESS
     const { data: printerAddressData, status: printerAddressStatus } = useContractRead({
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'getPrinterAddress',
         chainId: chain.id
@@ -94,7 +94,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
 
     // LOCK IMAGE
     const { isLoading: lockIsLoading, write: lockWrite } = useContractWrite({
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'lockImage',
         args: [imageAddress, imageId],

@@ -6,7 +6,7 @@ import { chain } from '@/utils/chains'
 import BuyCard from './BuyCard'
 
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 enum ReadState {
   loading,
@@ -20,7 +20,7 @@ const Gallery = () => {
   const [imageAddresses, setImageAddresses] = useState<`0x${string}`[]>([])
 
   const { data, isError, isLoading } = useContractRead({
-    address: CONTRACT_ADDRESS,
+    address: IMAGE_MANAGER_ADDRESS,
     abi: ImageManagerABI,
     functionName: 'getImagesAddresses',
     chainId: chain.id,

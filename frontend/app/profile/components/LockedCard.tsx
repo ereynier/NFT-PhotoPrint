@@ -35,7 +35,7 @@ interface ImageData {
     imagePrice: number
 }
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 
 const LockedCard = ({ lockedData: { imageAddress, imageId }, lockedData, refreshImages, refreshCertificates, refreshLockedData }: Props) => {

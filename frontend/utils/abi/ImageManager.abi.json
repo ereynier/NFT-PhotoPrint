@@ -164,9 +164,9 @@
   {
     "inputs": [
       {
-        "internalType": "bytes32",
+        "internalType": "string",
         "name": "cryptedOrderId",
-        "type": "bytes32"
+        "type": "string"
       }
     ],
     "name": "confirmOrder",

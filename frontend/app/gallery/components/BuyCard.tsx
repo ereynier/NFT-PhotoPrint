@@ -21,7 +21,7 @@ interface ImageData {
     imagePrice: number
 }
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 
 const BuyCard = ({ imageAddress }: Props) => {
@@ -67,14 +67,14 @@ const BuyCard = ({ imageAddress }: Props) => {
             args: []
         },
         {
-            address: CONTRACT_ADDRESS,
+            address: IMAGE_MANAGER_ADDRESS,
             abi: ImageManagerABI as any,
             functionName: 'getImagePriceInUsdInWei',
             chainId: chain.id,
             args: [imageAddress]
         },
         {
-            address: CONTRACT_ADDRESS,
+            address: IMAGE_MANAGER_ADDRESS,
             abi: ImageManagerABI as any,
             functionName: 'getAllowedTokens',
             chainId: chain.id,

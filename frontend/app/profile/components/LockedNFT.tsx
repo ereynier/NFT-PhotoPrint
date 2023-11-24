@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import Image from 'next/image'
 import { zeroAddress } from 'viem'
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = process.env.NEXT_PUBLIC_LOCKING_PERIOD || 604800
 
 interface ImageLockedData {
@@ -36,7 +36,7 @@ const LockedNFT = ({refreshImages, refreshCertificates}: Props) => {
 
     // GET PRINTER ADDRESS
     const { data: printerAddressData, status: printerAddressStatus } = useContractRead({
-        address: CONTRACT_ADDRESS,
+        address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'getPrinterAddress',
         chainId: chain.id

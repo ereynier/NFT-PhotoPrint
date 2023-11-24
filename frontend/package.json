@@ -22,6 +22,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "cmdk": "^0.2.0",
+    "crypto-js": "^4.2.0",
     "lucide-react": "^0.291.0",
     "next": "14.0.1",
     "pino-pretty": "^10.2.3",
@@ -33,6 +34,7 @@
     "wagmi": "^1.4.7"
   },
   "devDependencies": {
+    "@types/crypto-js": "^4.2.1",
     "@types/node": "^20.9.2",
     "@types/react": "^18.2.37",
     "@types/react-dom": "^18.2.15",

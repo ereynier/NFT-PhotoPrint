@@ -5,7 +5,7 @@ import PrinterABI from "@/utils/abi/Printer.abi.json"
 import CertificateABI from "@/utils/abi/Certificate.abi.json"
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 
-const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 
 export async function getImagesByUser(imageAddresses: `0x${string}`[], userAddress: `0x${string}`) {
@@ -40,7 +40,7 @@ export async function getCertificatesByUser(imageAddresses: `0x${string}`[], use
         const dataCertificateAddress = await readContracts({
             contracts: [
                 {
-                    address: CONTRACT_ADDRESS,
+                    address: IMAGE_MANAGER_ADDRESS,
                     abi: ImageManagerABI as any,
                     functionName: 'getCertificateByImage',
                     chainId: chain.id,
