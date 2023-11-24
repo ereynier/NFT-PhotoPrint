@@ -5,7 +5,6 @@ import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import PrinterABI from "@/utils/abi/Printer.abi.json"
 import { hexToString, keccak256, stringToHex, toHex, zeroAddress } from "viem";
 import CryptoJS from "crypto-js";
-import { emptyString } from "@/utils/contant";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const CREATIVEHUB_BASEURL = process.env.CREATIVEHUB_BASEURL
@@ -147,7 +146,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         return NextResponse.json({ success: false, status: 400, error: "NFT already printed" }, { status: 400 });
     }
 
-    if (lockedData.cryptedOrderId != emptyString) {
+    if (lockedData.cryptedOrderId != "") {
         return NextResponse.json({ success: false, status: 400, error: "NFT already ordered" }, { status: 400 });
     }
 

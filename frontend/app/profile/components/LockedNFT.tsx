@@ -81,13 +81,14 @@ const LockedNFT = ({refreshImages, refreshCertificates}: Props) => {
                     <Image onClick={() => handleUpdate()} src="/update.svg" alt="update" width="20" height="20" className='p-1 border-[1px] border-neutral-200 cursor-pointer w-fit h-fit rounded-lg hover:bg-neutral-200' />
                 </div>
             )}
-            {!imageLockedIsLoading && imageLocked && imageLocked["imageAddress"] != zeroAddress && (
+            {!imageLockedIsLoading && imageLocked && imageLocked["imageAddress"] != zeroAddress && printerAddress != null && (
                 <div>
                     <LockedCard
                         lockedData={imageLocked}
                         refreshImages={refreshImages}
                         refreshCertificates={refreshCertificates}
                         refreshLockedData={getNFTLocked}
+                        printerAddress={printerAddress}
                     />
                 </div>
             )}

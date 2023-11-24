@@ -10,7 +10,6 @@ import {
 } from "@/components/ui/tooltip"
 import { useContractWrite } from 'wagmi'
 import { chain } from '@/utils/chains'
-import { emptyString } from '@/utils/contant'
 
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 const LOCKING_PERIOD = process.env.NEXT_PUBLIC_LOCKING_PERIOD || 604800
@@ -77,9 +76,9 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
             return `You have already printed this NFT`
         }
         if (isDisabled()) {
-            return `You have to wait ${Math.floor(((Number(lockedData.timestampLock) + Number(LOCKING_PERIOD)) - Date.now() / 1000) / 3600)} hours before unlocking this NFT`
+            return `You have to wait ${Math.floor(((Number(lockedData.timestampLock) + Number(LOCKING_PERIOD)) - Date.now() / 1000) / 3600)} hours before unlocking this NFT if the print fail`
         }
-        if (lockedData.cryptedOrderId != emptyString) {
+        if (lockedData.cryptedOrderId != "") {
             return `You have to clear the embryonic order before unlocking this NFT`
         }
         return `You can unlock this NFT`
@@ -100,7 +99,7 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        {lockedData.cryptedOrderId == emptyString ? (
+                        {lockedData.cryptedOrderId == "" ? (
                             <Button disabled={isDisabled()} className='w-full rounded-t-none rounded-l-none bg-slate-600 hover:bg-slate-500' onClick={() => handleUnlock()}>Unlock</Button>
                         ) : (
                             <span className='w-full'>

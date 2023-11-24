@@ -31,7 +31,11 @@ import {
 import { useAccount, useContractWrite, useSignMessage } from 'wagmi'
 import React from 'react'
 
+import { useToast } from "@/components/ui/use-toast"
+
+
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
+
 
 const BASEURL = process.env.NEXT_PUBLIC_BASEURL || "http://localhost:3000"
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -115,9 +119,10 @@ export function Combobox({ setExternalValue, disabled }: ComoboxProps) {
 
 interface PrintButtonProps {
     lockedData: LockedData
+    refreshLockedData?: () => void
 }
 
-const PrintButton = ({ lockedData }: PrintButtonProps) => {
+const PrintButton = ({ lockedData, refreshLockedData }: PrintButtonProps) => {
 
     const [firstname, setFirstname] = React.useState('')
     const [lastname, setLastname] = React.useState('')
@@ -132,6 +137,9 @@ const PrintButton = ({ lockedData }: PrintButtonProps) => {
 
     const [embryonicIsLoading, setEmbryonicIsLoading] = React.useState(false)
     const [cryptedOrderId, setCryptedOrderId] = React.useState<string | undefined>(undefined)
+    const [open, setOpen] = React.useState(false)
+
+    const { toast } = useToast()
 
     const { isConnected, address } = useAccount()
 
@@ -258,12 +266,25 @@ const PrintButton = ({ lockedData }: PrintButtonProps) => {
         chainId: chain.id,
         args: [cryptedOrderId],
         onSuccess: (data) => {
-            console.log(data)
+            toast({
+                title: "Order Confirmed",
+                description: "Check your email to follow the status of the print",
+            })
+            var audio = new Audio('/audio/success.mp3');
+            audio.volume = 0.2;
+            audio.play();
+            resetFields();
+            setOpen(false);
+            refreshLockedData && refreshLockedData();
         },
         onError: (err) => {
             console.log(err)
+            toast({
+                title: "Confirmation failed",
+                description: "An error occured, please try again",
+                variant: "destructive"
+            })
         }
-
     })
 
     const resetFields = () => {
@@ -280,15 +301,22 @@ const PrintButton = ({ lockedData }: PrintButtonProps) => {
         setCryptedOrderId(undefined)
     }
 
+    const handleOpenChange = () => {
+        setOpen(!open)
+        if (open) {
+            resetFields()
+        }
+    }
+
     const isDisabled = () => {
         return cryptedOrderId !== undefined || signIsLoading || embryonicIsLoading || confirmOrderLoading
     }
 
     return (
         <div className='flex w-full justify-start items-start'>
-            <Dialog onOpenChange={(open) => { !open && resetFields() }}>
+            <Dialog open={open} onOpenChange={() => handleOpenChange() }>
                 <DialogTrigger asChild>
-                    <Button className='w-full rounded-t-none rounded-r-none' onClick={() => { console.log('print') }}>Print</Button>
+                    <Button disabled={lockedData.cryptedOrderId != "" || lockedData.printed} className='w-full rounded-t-none rounded-r-none' onClick={() => { console.log('print') }}>Print</Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-10/12 max-h-screen overflow-scroll">
                     <DialogHeader>

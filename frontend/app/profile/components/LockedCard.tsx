@@ -2,12 +2,13 @@
 import React, { useEffect, useState } from 'react'
 import { useContractEvent, useContractReads } from 'wagmi'
 import ImageABI from "@/utils/abi/Image.abi.json"
-import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
+import PrinterABI from "@/utils/abi/Printer.abi.json"
 import { chain } from '@/utils/chains'
 import ImageCard from '@/components/ImageCard'
 import LockDialog from './LockDialog'
 import UnlockButton from './UnlockButton'
 import PrintButton from './PrintButton'
+import MintCertificateButton from './MintCertificateButton'
 
 interface LockedData {
     imageAddress: `0x${string}`,
@@ -23,6 +24,7 @@ interface Props {
     refreshCertificates?: () => void
     lockedData: LockedData
     refreshLockedData?: () => void
+    printerAddress: `0x${string}`
 }
 
 interface ImageData {
@@ -38,7 +40,7 @@ interface ImageData {
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 
-const LockedCard = ({ lockedData: { imageAddress, imageId }, lockedData, refreshImages, refreshCertificates, refreshLockedData }: Props) => {
+const LockedCard = ({ lockedData: { imageAddress, imageId }, lockedData, refreshImages, refreshCertificates, refreshLockedData, printerAddress }: Props) => {
 
     const [imageData, setImageData] = useState<ImageData>({
         imageAddress: imageAddress,
@@ -78,6 +80,17 @@ const LockedCard = ({ lockedData: { imageAddress, imageId }, lockedData, refresh
         data: any, status: 'idle' | 'error' | 'loading' | 'success', refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any>
     }
 
+    useContractEvent({
+        address: printerAddress,
+        abi: PrinterABI,
+        eventName: 'ImagePrinted',
+        listener(log: any) {
+            if (log[0]['args']['imageAddress'] == imageAddress && log[0]['args']['imageId'] == imageId) {
+                refreshLockedData && refreshLockedData();
+            }
+        },
+    })
+
     useEffect(() => {
         if (data) {
             if (!isNaN(Number(data[2].result))) {
@@ -104,8 +117,15 @@ const LockedCard = ({ lockedData: { imageAddress, imageId }, lockedData, refresh
                 <div>
                     <ImageCard imageData={imageData} displayId={true}>
                         <div className='flex w-full'>
-                            <PrintButton lockedData={lockedData} />
-                            <UnlockButton refreshImages={refreshImages} lockedData={lockedData} refreshLockedData={refreshLockedData} />
+                            {lockedData.cryptedOrderId == "" && (
+                                <PrintButton lockedData={lockedData} refreshLockedData={refreshLockedData} />
+                            )}
+                            {!lockedData.printed && (
+                                <UnlockButton refreshImages={refreshImages} lockedData={lockedData} refreshLockedData={refreshLockedData} />
+                            )}
+                            {lockedData.printed && (
+                                <MintCertificateButton lockedData={lockedData} refreshLockedData={refreshLockedData} refreshImages={refreshImages} refreshCertificates={refreshCertificates} />
+                            )}
                         </div>
                     </ImageCard>
                 </div>
