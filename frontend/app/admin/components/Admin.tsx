@@ -5,6 +5,7 @@ import { useAccount, useContractReads } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import Link from 'next/link'
+import CreateNFT from './CreateNFT'
 
 
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -36,8 +37,9 @@ const Admin = () => {
     return (
         <div className='flex flex-col items-center justify-center'>
             {isConnected && owner && owner == address && (
-                <div className="flex flex-col items-center justify-center">
+                <div className="flex flex-col items-center justify-center w-full">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl w-full text-center p-2">Admin page</h1>
+                    <CreateNFT />
                 </div>
             )}
             {!isConnected && (
