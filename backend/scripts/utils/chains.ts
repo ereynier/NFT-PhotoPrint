@@ -1,4 +1,4 @@
-import dotenv from "dotenv";
+require('dotenv').config({ path: __dirname+'/../.env' });
 import { foundry, polygonMumbai, polygon, Chain } from "viem/chains";
 
 const CHAIN = process.env.CHAIN || "foundry";

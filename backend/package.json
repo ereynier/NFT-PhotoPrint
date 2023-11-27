@@ -1,9 +1,12 @@
 {
 	"dependencies": {
+		"crypto-js": "^4.2.0",
 		"dotenv": "^16.3.1",
 		"viem": "^1.19.8"
 	},
 	"devDependencies": {
-		"@types/node": "^20.10.0"
+		"@types/crypto-js": "^4.2.1",
+		"@types/node": "^20.10.0",
+		"typescript": "^5.3.2"
 	}
 }
