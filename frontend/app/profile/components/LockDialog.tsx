@@ -139,6 +139,17 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         },
     })
 
+    useContractEvent({
+        address: printerAddress as `0x${string}`,
+        abi: PrinterABI,
+        eventName: 'CertificateMinted',
+        listener(log: any) {
+            if (log[0]["args"]["user"] == address) { 
+                getNFTLocked()
+            }
+        },
+    })
+
     useEffect(() => {
         if (printerAddressData && !printerAddress) {
             setPrinterAddress(printerAddressData)

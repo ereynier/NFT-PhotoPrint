@@ -228,7 +228,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     })
 
     //get printOptionId
-    const printOptionId = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/products/${productId}`, { // test 35846
+    const printOptionId = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/products/${Number(productId)}`, { // test 35846
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

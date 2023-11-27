@@ -82,7 +82,7 @@ const Collection = ({ imageAddresses }: Props) => {
                         let liElements = []
                         for (let i = 0; i < imagesList[imageAddress as `0x${string}`].length; i++) {
                             liElements.push(
-                                <li key={index}>
+                                <li key={`${index}-${i}`}>
                                     <OwnedCard imageAddress={imageAddress as `0x${string}`} imageId={imagesList[imageAddress as `0x${string}`][i]} locker={true} refreshImages={getImagesIdByUser}/>
                                 </li>
                             )
@@ -100,7 +100,7 @@ const Collection = ({ imageAddresses }: Props) => {
                         let liElements = []
                         for (let i = 0; i < certificatesList[certificateAddress as `0x${string}`].length; i++) {
                             liElements.push(
-                                <li key={index}>
+                                <li key={`${index}-${i}`}>
                                     <OwnedCard imageAddress={certificateAddress as `0x${string}`} imageId={certificatesList[certificateAddress as `0x${string}`][i]} />
                                 </li>
                             )

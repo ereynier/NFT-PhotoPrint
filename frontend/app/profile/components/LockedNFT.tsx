@@ -70,7 +70,7 @@ const LockedNFT = ({refreshImages, refreshCertificates}: Props) => {
         if (isConnected && printerAddress && imageLockedIsLoading) {
             getNFTLocked()
         }
-    }), [printerAddressData, isConnected, printerAddress]
+    }, [printerAddressData, isConnected, printerAddress])
 
     return (
         <div>
