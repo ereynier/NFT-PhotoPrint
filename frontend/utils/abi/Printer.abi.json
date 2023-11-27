@@ -209,6 +209,18 @@
         "internalType": "string",
         "name": "cryptedOrderId",
         "type": "string"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "imageAddress",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "imageId",
+        "type": "uint256"
       }
     ],
     "name": "ConfirmOrder",

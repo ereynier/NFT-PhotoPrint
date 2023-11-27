@@ -1,19 +1,17 @@
 import { configureChains, createConfig } from 'wagmi'
 import { alchemyProvider } from 'wagmi/providers/alchemy'
 import { publicProvider } from 'wagmi/providers/public'
-import { chain } from '@/utils/chains'
+import { chain, chainRpc } from '@/utils/chains'
 import { InjectedConnector } from 'wagmi/connectors/injected'
 import { MetaMaskConnector } from 'wagmi/connectors/metaMask'
 import { WalletConnectConnector } from 'wagmi/connectors/walletConnect'
 import { CoinbaseWalletConnector } from 'wagmi/connectors/coinbaseWallet'
 import { LedgerConnector } from 'wagmi/connectors/ledger'
 
-const ACLHEMY_API_KEY = process.env.ACLHEMY_API_KEY || ""
-
 const providers = []
 
-if (ACLHEMY_API_KEY != "") {
-    providers.push(alchemyProvider({ apiKey: ACLHEMY_API_KEY }))
+if (chainRpc != "") {
+    providers.push(alchemyProvider({ apiKey: chainRpc }))
 }
 providers.push(publicProvider())
 
