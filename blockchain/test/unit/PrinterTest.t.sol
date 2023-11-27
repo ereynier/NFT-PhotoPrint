@@ -17,7 +17,7 @@ contract PrinterTest is Test {
     MockImage mockImage;
     MockCertificate mockCertificate;
 
-    event ConfirmOrder(address indexed user, string cryptedOrderId);
+    event ConfirmOrder(address indexed user, string cryptedOrderId, address imageAddress, uint256 imageId);
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
     event ImagePrinted(address indexed user, address imageAddress, uint256 imageId);
     event CertificateMinted(address indexed user, address certificateAddress, uint256 imageId);
@@ -180,7 +180,7 @@ contract PrinterTest is Test {
         vm.warp(block.timestamp + 1 days);
         vm.startPrank(OWNER);
         vm.expectEmit(true, false, false, true);
-        emit ConfirmOrder(USER, string("test"));
+        emit ConfirmOrder(USER, string("test"), address(mockImage), 0);
         printer.confirmOrder(USER, string("test"));
         vm.stopPrank();
         (address imageAddress, uint256 imageId, bool printed, uint256 timestampLock, string memory cryptedOrderId,) =

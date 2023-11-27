@@ -48,7 +48,7 @@ contract Printer is Ownable, ReentrancyGuard {
 
     /* ========== Events ========== */
 
-    event ConfirmOrder(address indexed user, string cryptedOrderId);
+    event ConfirmOrder(address indexed user, string cryptedOrderId, address imageAddress, uint256 imageId);
     event ImageLocked(address indexed user, address imageAddress, uint256 imageId);
     event ImageUnlocked(address indexed user, address imageAddress, uint256 imageId);
     event ImagePrinted(address indexed user, address imageAddress, uint256 imageId);
@@ -123,7 +123,7 @@ contract Printer is Ownable, ReentrancyGuard {
 
         _nftByUser[user].timestampLock = block.timestamp;
         _nftByUser[user].cryptedOrderId = cryptedOrderId;
-        emit ConfirmOrder(user, cryptedOrderId);
+        emit ConfirmOrder(user, cryptedOrderId, _nftByUser[user].imageAddress, _nftByUser[user].imageId);
     }
 
     function clearOrderId(address user) external onlyOwner tokenLocked(user) nonReentrant {
