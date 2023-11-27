@@ -182,7 +182,7 @@ export async function POST(req: Request): Promise<NextResponse> {
     //                 {
     //                     "Member": "Externalreference",
     //                     "PredicateOperator": "IsEqualTo",
-    //                     "Value": "string" //TODO: hashImageAddress + imageId + userAddress
+    //                     "Value": "string" // hashImageAddress + imageId + userAddress
     //                 },
     //                 {
     //                     "Member": "OrderState",
