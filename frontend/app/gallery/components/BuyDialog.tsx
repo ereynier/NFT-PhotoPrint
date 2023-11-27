@@ -9,7 +9,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
-import { useAccount, useContractEvent, useContractReads } from 'wagmi'
+import { useAccount, useContractEvent, useContractRead, useContractReads } from 'wagmi'
 import Image from 'next/image'
 import getTokens from '@/app/utils/getTokens'
 import {
@@ -23,7 +23,11 @@ import BuyButton from './BuyButton'
 import { formatEther } from 'viem'
 import { getBalanceOfUser } from './getBalanceOfUser'
 import ImageABI from "@/utils/abi/Image.abi.json"
+import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
+import CertificateABI from "@/utils/abi/Certificate.abi.json"
 import { chain } from '@/utils/chains'
+
+const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
 
 interface ImageData {
     imageAddress: `0x${string}`
@@ -47,6 +51,8 @@ const BuyDialog = ({ imageData: { imageAddress, imageTitle, imageMaxSupply, imag
     const [selectedToken, setSelectedToken] = useState<`0x${string}` | null>(null)
     const [open, setOpen] = useState<boolean>(false)
     const [imageBalance, setImageBalance] = useState<number>(0)
+    const [certifBalance, setCertifBalance] = useState<number>(0)
+    const [certifAddress, setCertifAddress] = useState<`0x${string}` | null>(null)
 
     const { isConnected, address } = useAccount()
 
@@ -57,7 +63,7 @@ const BuyDialog = ({ imageData: { imageAddress, imageTitle, imageMaxSupply, imag
         console.log(tokensInfo)
     }
 
-    const { data, status, refetch: refetchUserBalance } = useContractReads({
+    const { data: dataUserBalance, status, refetch: refetchUserBalance } = useContractReads({
         contracts: [
             {
                 address: imageAddress,
@@ -69,6 +75,21 @@ const BuyDialog = ({ imageData: { imageAddress, imageTitle, imageMaxSupply, imag
         ]
     }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success', refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
 
+    const { data: certifAddressData, status: certifAddressStatus } = useContractRead({
+        address: IMAGE_MANAGER_ADDRESS,
+        abi: ImageManagerABI,
+        functionName: 'getCertificateByImage',
+        chainId: chain.id,
+        args: [imageAddress]
+    }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success' }
+
+    const { data: certifBalanceData, status: certifBalanceStatus, refetch: refetchCertifBalance } = useContractRead({
+        address: certifAddress as `0x${string}`,
+        abi: CertificateABI,
+        functionName: 'balanceOf',
+        chainId: chain.id,
+        args: [address as `0x${string}`]
+    }) as { data: any, status: 'idle' | 'error' | 'loading' | 'success', refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
 
     // useContractEvent({
     //     address: imageAddress as `0x${string}`,
@@ -86,11 +107,17 @@ const BuyDialog = ({ imageData: { imageAddress, imageTitle, imageMaxSupply, imag
         if (!isConnected) {
             setOpen(false)
         }
-        if (data) {
-            setImageBalance(data[0].result)
+        if (dataUserBalance) {
+            setImageBalance(dataUserBalance[0].result)
+        }
+        if (certifAddressData) {
+            setCertifAddress(certifAddressData)
+        }
+        if (certifBalanceData) {
+            setCertifBalance(certifBalanceData)
         }
         getTokensInfo()
-    }, [allowedTokens, isConnected, data])
+    }, [allowedTokens, isConnected, dataUserBalance, certifBalanceData])
 
     return (
         <Dialog open={open} onOpenChange={(open) => setOpen(open)}>
@@ -106,7 +133,7 @@ const BuyDialog = ({ imageData: { imageAddress, imageTitle, imageMaxSupply, imag
                 </DialogHeader>
                 <div className='flex flex-col items-start justify-start'>
                     <p className='text-start'>There are <span className=' font-bold'>{String(imageMaxSupply - imageNextId)}</span> NFTs left in this collection at a price of <span className=' font-bold'>${formatEther(BigInt(imagePrice))}</span>.</p>
-                    <p className='text-start'>You have <span className=' font-bold'>{String(imageBalance)}</span> NFTs from this collection.</p>
+                    <p className='text-start'>You have <span className=' font-bold'>{String(Number(imageBalance) + Number(certifBalance))}</span> NFTs from this collection.</p>
                 </div>
                 <div className='flex flex-row items-center justify-between'>
                     {/* Select through all the tokens available*/}
