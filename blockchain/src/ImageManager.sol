@@ -151,7 +151,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         string memory _symbol,
         uint256 _maxSupply,
         string memory _baseURIString,
-        uint256 _priceInUsd,
+        uint256 _priceInUsdWei,
         uint256 _printId
     ) external onlyOwner returns (address) {
         Image image = new Image(address(this), _name, _symbol, _maxSupply, _baseURIString);
@@ -162,7 +162,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         _imageToCertificate[address(image)] = address(certificate);
         _certificateToImage[address(certificate)] = address(image);
         _isImage[address(image)] = true;
-        _imagePricesInUsdInWei[address(image)] = _priceInUsd;
+        _imagePricesInUsdInWei[address(image)] = _priceInUsdWei;
         _printIds[address(image)] = _printId;
         emit ImageCreated(address(image));
         return address(image);
