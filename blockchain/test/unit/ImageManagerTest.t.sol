@@ -394,6 +394,12 @@ contract ImageManagerTest is Test {
         imageManager.editPrintId(USER_1, 1);
     }
 
+    function testEditPrintIdRevertIfImageNotRegistered() public {
+        vm.expectRevert(abi.encodeWithSelector(ImageManager.ImageManager__ImageNotRegistered.selector, OWNER));
+        vm.prank(OWNER);
+        imageManager.editPrintId(OWNER, 1);
+    }
+
     function testEditPrintIdGood() public {
         vm.startPrank(OWNER);
         address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);

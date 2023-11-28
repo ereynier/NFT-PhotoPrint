@@ -175,7 +175,7 @@ contract ImageManager is Ownable, ReentrancyGuard {
         }
     }
 
-    function editPrintId(address imageAddress, uint256 _printId) external onlyOwner {
+    function editPrintId(address imageAddress, uint256 _printId) external onlyOwner onlyRegisteredImage(imageAddress) {
         _printIds[imageAddress] = _printId;
     }
 
