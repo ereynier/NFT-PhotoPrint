@@ -8,6 +8,8 @@ import Link from 'next/link'
 import CreateNFT from './CreateNFT'
 import { Separator } from '@/components/ui/separator'
 import SetAdmin from './SetAdmin'
+import Withdraw from './Withdraw'
+import EditPrintId from './EditPrintId'
 
 
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -46,6 +48,14 @@ const Admin = () => {
                         <Separator className='w-1/3 bg-slate-300' />
                     </div>
                     <SetAdmin />
+                    <div className='flex w-full items-center justify-center my-4'>
+                        <Separator className='w-1/3 bg-slate-300' />
+                    </div>
+                    <Withdraw />
+                    <div className='flex w-full items-center justify-center my-4'>
+                        <Separator className='w-1/3 bg-slate-300' />
+                    </div>
+                    <EditPrintId />
                 </div>
             )}
             {!isConnected && (

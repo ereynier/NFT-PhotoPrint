@@ -21,6 +21,7 @@ export default async function getTokens(tokenAddress: `0x${string}`) {
     })
     return {
         name: data[0].result,
-        symbol: data[1].result
+        symbol: data[1].result,
+        address: tokenAddress
     }
 }
