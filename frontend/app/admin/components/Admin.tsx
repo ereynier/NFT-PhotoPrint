@@ -6,6 +6,8 @@ import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import Link from 'next/link'
 import CreateNFT from './CreateNFT'
+import { Separator } from '@/components/ui/separator'
+import SetAdmin from './SetAdmin'
 
 
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -40,6 +42,10 @@ const Admin = () => {
                 <div className="flex flex-col items-center justify-center w-full">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl w-full text-center p-2">Admin page</h1>
                     <CreateNFT />
+                    <div className='flex w-full items-center justify-center my-4'>
+                        <Separator className='w-1/3 bg-slate-300' />
+                    </div>
+                    <SetAdmin />
                 </div>
             )}
             {!isConnected && (
