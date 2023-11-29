@@ -1,4 +1,5 @@
 import { Metadata } from "next"
+import HomePage from "./Components/HomePage"
 
 export const metadata: Metadata = {
   title: 'NFT Prints | Home',
@@ -9,7 +10,7 @@ export default function Home() {
   
   return (
     <div className="text-foreground bg-background">
-      Home
+      <HomePage />
     </div>
   )
 }
