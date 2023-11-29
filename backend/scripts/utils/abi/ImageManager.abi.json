@@ -198,7 +198,7 @@
       },
       {
         "internalType": "uint256",
-        "name": "_priceInUsd",
+        "name": "_priceInUsdWei",
         "type": "uint256"
       },
       {
