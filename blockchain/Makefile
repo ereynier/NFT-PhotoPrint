@@ -51,7 +51,7 @@ anvil :; anvil -m 'test test test test test test test test test test test junk' 
 NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KEY) --broadcast
 
 ifeq ($(findstring --network mumbai,$(ARGS)),--network mumbai)
-	NETWORK_ARGS := --rpc-url $(MUMBAI_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(POLYGONSCAN_API_KEY) --verifier-url https://api.polygonscan.com/api -vvvv
+	NETWORK_ARGS := --rpc-url $(MUMBAI_RPC_URL) --private-key $(PRIVATE_KEY) --broadcast --verify --etherscan-api-key $(POLYGONSCAN_API_KEY) --verifier-url https://api-testnet.polygonscan.com/api -vvvv
 endif
 
 ifeq ($(findstring --network polygon,$(ARGS)), --network polygon)
