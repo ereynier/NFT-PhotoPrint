@@ -84,7 +84,7 @@ contract Certificate is ERC721, ERC721Enumerable, Ownable {
         return _URI;
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+    function tokenURI(uint256) public view override returns (string memory) {
         return string(_URI);
     }
 
