@@ -89,7 +89,7 @@ function cancelOrder(orderId) {
 }
 function initiatePrint(args, printerAddress) {
     return __awaiter(this, void 0, void 0, function () {
-        var imageLockedData, imageLocked, e_1, decrypted, orderId, shippingId, order, externalReference, printedHash, transaction, confirmation;
+        var imageLockedData, imageLocked, e_1, decrypted, orderId, shippingId, order, externalReference, printedHash, e_2, transaction, confirmation;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -179,26 +179,34 @@ function initiatePrint(args, printerAddress) {
                         console.error('order not matching', order, orderId);
                         return [2 /*return*/];
                     }
+                    _a.label = 8;
+                case 8:
+                    _a.trys.push([8, 10, , 11]);
                     return [4 /*yield*/, client_1.walletClient.writeContract({
                             address: printerAddress,
                             abi: PrinterABI,
                             functionName: 'setPrinted',
                             args: [args.user]
-                        })
-                        // wait until it's done (5 blocks) before confirming the order
-                    ];
-                case 8:
-                    printedHash = _a.sent();
-                    return [4 /*yield*/, client_1.publicClient.waitForTransactionReceipt({
-                            confirmations: 5,
-                            hash: printedHash
                         })];
                 case 9:
+                    printedHash = _a.sent();
+                    return [3 /*break*/, 11];
+                case 10:
+                    e_2 = _a.sent();
+                    console.error(e_2);
+                    return [2 /*return*/];
+                case 11: return [4 /*yield*/, client_1.publicClient.waitForTransactionReceipt({
+                        confirmations: 5,
+                        hash: printedHash,
+                        pollingInterval: 15000,
+                        timeout: 2 * 60 * 60 * 1000
+                    })];
+                case 12:
                     transaction = _a.sent();
-                    if (!(!transaction || transaction.status == 'reverted')) return [3 /*break*/, 10];
+                    if (!(!transaction || transaction.status == 'reverted')) return [3 /*break*/, 13];
                     console.error('transaction failed', transaction, args);
                     return [2 /*return*/];
-                case 10: return [4 /*yield*/, fetch("".concat(CREATIVEHUB_BASEURL, "/api/v1/orders/confirmed"), {
+                case 13: return [4 /*yield*/, fetch("".concat(CREATIVEHUB_BASEURL, "/api/v1/orders/confirmed"), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -215,14 +223,14 @@ function initiatePrint(args, printerAddress) {
                     })
                         .then(function (response) { return response.json(); })
                         .then(function (data) { return data; })["catch"](function (err) { console.error(err); })];
-                case 11:
+                case 14:
                     confirmation = _a.sent();
                     if (!confirmation || !confirmation['Id']) {
                         console.error('confirmation failed', confirmation);
                         return [2 /*return*/];
                     }
-                    _a.label = 12;
-                case 12: return [2 /*return*/];
+                    _a.label = 15;
+                case 15: return [2 /*return*/];
             }
         });
     });

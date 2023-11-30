@@ -149,12 +149,18 @@ async function initiatePrint(args: ConfrimationArgs, printerAddress: `0x${string
 
 
     // sets the NFT to "printed" in the printer
-    const printedHash = await walletClient.writeContract({
-        address: printerAddress as `0x${string}`,
-        abi: PrinterABI as any,
-        functionName: 'setPrinted',
-        args: [args.user]
-    })
+    let printedHash: `0x${string}`
+    try {
+        printedHash = await walletClient.writeContract({
+            address: printerAddress as `0x${string}`,
+            abi: PrinterABI as any,
+            functionName: 'setPrinted',
+            args: [args.user]
+        })
+    } catch (e) {
+        console.error(e)
+        return
+    }
 
     // wait until it's done (5 blocks) before confirming the order
     const transaction = await publicClient.waitForTransactionReceipt(
