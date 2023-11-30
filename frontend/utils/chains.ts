@@ -1,6 +1,6 @@
 import { foundry, polygonMumbai, polygon, Chain } from "viem/chains";
 
-const CHAIN = process.env.CHAIN || "foundry";
+const CHAIN = process.env.NEXT_PUBLIC_CHAIN || "foundry";
 const MUMBAI_ALCHEMY_API_KEY = process.env.MUMBAI_ALCHEMY_API_KEY || "";
 const POLYGON_ALCHEMY_API_KEY = process.env.POLYGON_ALCHEMY_API_KEY || "";
 
