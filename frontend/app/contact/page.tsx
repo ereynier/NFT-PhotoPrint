@@ -8,6 +8,7 @@ export default function Home() {
         <div className="h-fit w-full flex flex-col gap-5 items-center text-lg sm:text-xl md:text-2xl">
           <p className="">Mail: <Link href="mailto:esteban@ereynier.me" className="underline">esteban@ereynier.me</Link></p>
           <p className="">Linkedin: <Link href="https://linkedin.com/in/ereynier" target="_blank" className="underline">@ereynier</Link></p>
+          <p className="">Instagram: <Link href="https://instagram.com/esteban.pics" target="_blank" className="underline">@esteban.pics</Link></p>
         </div>
       </div>
     </div>

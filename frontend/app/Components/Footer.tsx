@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import React from 'react'
 import { Separator } from "@/components/ui/separator"
-import { ApertureIcon, Instagram, Linkedin } from "lucide-react"
+import { ApertureIcon, Github, Instagram, Linkedin } from "lucide-react"
 
 
 const Footer = () => {
@@ -33,6 +33,9 @@ const Footer = () => {
                     </Link>
                     <Link href={"https://www.linkedin.com/in/ereynier/"} target='_blank'>
                         <Linkedin />
+                    </Link>
+                    <Link href={"https://github.com/ereynier"} target='_blank'>
+                        <Github />
                     </Link>
                 </div>
             </div>
