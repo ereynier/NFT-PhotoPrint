@@ -577,7 +577,8 @@ contract ImageManagerTest is Test {
     function testGetTokensAmountFromImageGood() public {
         vm.prank(OWNER);
         address imageAddress = imageManager.createImage("test", "TEST", MAX_SUPPLY, "https://test.com", VALUE_IN_USD, 2);
-        for (uint256 i = 0; i < allowedTokens.length; i++) {
+        address[] memory allowedTokens_ = imageManager.getAllowedTokens();
+        for (uint256 i = 0; i < allowedTokens_.length; i++) {
             assertEq(imageManager.getTokensAmountFromImage(imageAddress)[i], imageManager.getTokenAmountFromUsd(allowedTokens[i], imageManager.getImagePriceInUsdInWei(imageAddress)));
         }
     }

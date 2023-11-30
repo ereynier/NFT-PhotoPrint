@@ -29,8 +29,9 @@ contract HelperConfig is Script {
     int256 public constant USDC_USD_PRICE = 1e8;
     int256 public constant USDT_USD_PRICE = 101e6;
     uint256 public DEFAULT_ANVIL_KEY = 0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80;
-    address public ANVIL_OWNER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
-    address public constant owner = 0xaA136C6bDfe6DfC154E9912Ead80F7179c55Bc08;
+    address public constant ANVIL_OWNER = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
+    address public constant MUMBAI_OWNER = 0xb8327672284895742D91Be59d45B5984972f6E1f;
+    address public constant OWNER = 0xaA136C6bDfe6DfC154E9912Ead80F7179c55Bc08;
 
     NetworkConfig public activeNetworkConfig;
 
@@ -56,7 +57,7 @@ contract HelperConfig is Script {
             dai: 0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F,
             usdc: address(0),
             usdt: address(0),
-            owner: owner,
+            owner: MUMBAI_OWNER,
             deployerKey: vm.envUint("PRIVATE_KEY")
         });
     }
@@ -73,7 +74,7 @@ contract HelperConfig is Script {
             dai: 0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063,
             usdc: 0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174,
             usdt: 0xc2132D05D31c914a87C6611C10748AEb04B58e8F,
-            owner: owner,
+            owner: OWNER,
             deployerKey: vm.envUint("PRIVATE_KEY")
         });
     }
