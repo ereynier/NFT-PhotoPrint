@@ -47,14 +47,14 @@ contract HelperConfig is Script {
 
     function getMumbaiPolygonConfig() public view returns (NetworkConfig memory) {
         return NetworkConfig({
-            wbtcUsdPriceFeed: 0x007A22900a3B98143368Bd5906f8E17e9867581b,
-            wethUsdPriceFeed: 0x0715A7794a1dc8e42615F059dD6e406A6594651A,
+            wbtcUsdPriceFeed: 0x8DC11D781229D66Ddea8deCF53713052bFa5cF49,
+            wethUsdPriceFeed: 0x6f0E6B18fa52c1E479Eed8f345D4c85Bf81AE55d,
             daiUsdPriceFeed: 0x0FCAa9c899EC5A91eBc3D5Dd869De833b06fB046,
             usdcUsdPriceFeed: address(0),
             usdtUsdPriceFeed: address(0),
             wbtc: 0x0d787a4a1548f673ed375445535a6c7A1EE56180,
             weth: 0xA6FA4fB5f76172d178d61B04b0ecd319C5d1C0aa,
-            dai: 0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F,
+            dai: 0x5Ed389953404507177c1843db46Ef79973f5D1Ab,
             usdc: address(0),
             usdt: address(0),
             owner: MUMBAI_OWNER,
