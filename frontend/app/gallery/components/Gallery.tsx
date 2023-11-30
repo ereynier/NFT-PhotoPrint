@@ -4,6 +4,7 @@ import { useContractRead } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import BuyCard from './BuyCard'
+import TokenFaucet from './TokenFaucet'
 
 
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -50,6 +51,9 @@ const Gallery = () => {
       )}
       {readState === ReadState.error && (
         <p>Error</p>
+      )}
+      {readState === ReadState.success && imageAddresses && chain.id === 80001 && (
+        <TokenFaucet />
       )}
       {readState === ReadState.success && imageAddresses && (
         <ul className='flex flex-wrap gap-8 items-center justify-center px-8'>

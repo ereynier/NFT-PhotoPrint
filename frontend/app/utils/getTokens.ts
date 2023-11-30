@@ -17,11 +17,20 @@ export default async function getTokens(tokenAddress: `0x${string}`) {
             functionName: 'symbol',
             chainId: chain.id,
             args: []
-        }]
+        },
+        {
+            address: tokenAddress,
+            abi: erc20ABI as any,
+            functionName: 'decimals',
+            chainId: chain.id,
+            args: []
+        }
+    ]
     })
     return {
         name: data[0].result,
         symbol: data[1].result,
+        decimals: data[2].result,
         address: tokenAddress
     }
 }
