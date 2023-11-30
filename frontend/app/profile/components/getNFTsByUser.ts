@@ -12,6 +12,9 @@ export async function getImagesByUser(imageAddresses: `0x${string}`[], userAddre
 
     const data: { [key: `0x${string}`]: number[] } = {}
 
+    if (!imageAddresses) {
+        return data
+    }
     for (const imageAddress of imageAddresses) {
         const dataBalance = await readContracts({
             contracts: [
@@ -34,6 +37,10 @@ export async function getImagesByUser(imageAddresses: `0x${string}`[], userAddre
 export async function getCertificatesByUser(imageAddresses: `0x${string}`[], userAddress: `0x${string}`) {
 
     const data: { [key: `0x${string}`]: number[] } = {}
+
+    if (!imageAddresses) {
+        return data
+    }
 
     for (const imageAddress of imageAddresses) {
 
