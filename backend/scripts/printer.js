@@ -36,6 +36,8 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 exports.__esModule = true;
+var express = require('express');
+var app = express();
 var PrinterABI = require('./utils/abi/Printer.abi.json');
 var ImageManagerABI = require('./utils/abi/ImageManager.abi.json');
 var viem_1 = require("viem");
@@ -273,3 +275,10 @@ function main() {
     });
 }
 main();
+app.get('/', function (req, res) {
+    res.send('Server is running.');
+});
+var port = process.env.PORT || 3001;
+app.listen(port, function () {
+    console.log("Server is listening on port ".concat(port));
+});
