@@ -1,6 +1,3 @@
-const express = require('express');
-const app = express();
-
 const PrinterABI = require('./utils/abi/Printer.abi.json')
 const ImageManagerABI = require('./utils/abi/ImageManager.abi.json')
 import { keccak256, toHex } from 'viem';
@@ -235,12 +232,3 @@ async function main() {
 }
 
 main()
-
-app.get('/', (req: any, res: any) => {
-    res.send('Server is running.');
-});
-
-const port = process.env.PORT || 3001;
-app.listen(port, () => {
-    console.log(`Server is listening on port ${port}`);
-});
