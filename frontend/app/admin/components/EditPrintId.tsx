@@ -1,10 +1,10 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { isAddress } from 'viem'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
-import { useContractWrite } from 'wagmi'
+import { useContractWrite, useWaitForTransaction } from 'wagmi'
 import { chain } from '@/utils/chains'
 import { useToast } from "@/components/ui/use-toast"
 
@@ -17,12 +17,24 @@ const EditPrintId = () => {
 
     const { toast } = useToast()
 
-    const { isLoading, write } = useContractWrite({
+    const { data, isLoading, write } = useContractWrite({
         address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'editPrintId',
         chainId: chain.id,
         args: [imageAddress, printId],
+        onError: () => {
+            toast({
+                title: 'Error',
+                description: 'Error',
+                variant: 'destructive'
+            })
+        }
+    })
+
+    const { data: txReceipt, isLoading: txReceiptIsLoading, refetch: txReceiptRefetch } = useWaitForTransaction({
+        hash: data?.hash,
+        chainId: chain.id,
         onSuccess: () => {
             toast({
                 title: "Success",
@@ -41,7 +53,7 @@ const EditPrintId = () => {
                 variant: 'destructive'
             })
         }
-    })
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -49,12 +61,18 @@ const EditPrintId = () => {
     }
 
     const isDisabled = () => {
-        if (isAddress(imageAddress) == false || printId == 0 || isLoading) {
+        if (isAddress(imageAddress) == false || printId == 0 || isLoading || txReceiptIsLoading) {
             return true
         } else {
             return false
         }
     }
+
+    useEffect(() => {
+        if (data?.hash) {
+            txReceiptRefetch({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [data])
 
     return (
         <>

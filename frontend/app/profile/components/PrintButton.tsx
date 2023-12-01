@@ -28,8 +28,8 @@ import {
     PopoverTrigger,
 } from "@/components/ui/popover"
 
-import { useAccount, useContractWrite, useSignMessage } from 'wagmi'
-import React from 'react'
+import { useAccount, useContractWrite, useSignMessage, useWaitForTransaction } from 'wagmi'
+import React, { useEffect } from 'react'
 
 import { useToast } from "@/components/ui/use-toast"
 
@@ -265,7 +265,20 @@ const PrintButton = ({ lockedData, refreshLockedData }: PrintButtonProps) => {
         functionName: 'confirmOrder',
         chainId: chain.id,
         args: [cryptedOrderId],
-        onSuccess: (data) => {
+        onError: (err) => {
+            console.log(err)
+            toast({
+                title: "Confirmation failed",
+                description: "An error occured, please try again",
+                variant: "destructive"
+            })
+        }
+    })
+
+    const { data: txReceipt, isLoading: txReceiptIsLoading, refetch: txReceiptRefetch } = useWaitForTransaction({
+        hash: confirmOrderData?.hash,
+        chainId: chain.id,
+        onSuccess: () => {
             toast({
                 title: "Order Confirmed",
                 description: "Check your email to follow the status of the print",
@@ -285,7 +298,8 @@ const PrintButton = ({ lockedData, refreshLockedData }: PrintButtonProps) => {
                 variant: "destructive"
             })
         }
-    })
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
+
 
     const resetFields = () => {
         setFirstname('')
@@ -309,12 +323,18 @@ const PrintButton = ({ lockedData, refreshLockedData }: PrintButtonProps) => {
     }
 
     const isDisabled = () => {
-        return cryptedOrderId !== undefined || signIsLoading || embryonicIsLoading || confirmOrderLoading
+        return cryptedOrderId !== undefined || signIsLoading || embryonicIsLoading || confirmOrderLoading || txReceiptIsLoading
     }
+
+    useEffect(() => {
+        if (confirmOrderData?.hash) {
+            txReceiptRefetch({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [confirmOrderData])
 
     return (
         <div className='flex w-full justify-start items-start'>
-            <Dialog open={open} onOpenChange={() => handleOpenChange() }>
+            <Dialog open={open} onOpenChange={() => handleOpenChange()}>
                 <DialogTrigger asChild>
                     <Button disabled={lockedData.cryptedOrderId != "" || lockedData.printed} className='w-full rounded-t-none rounded-r-none' onClick={() => { console.log('print') }}>Print</Button>
                 </DialogTrigger>
@@ -399,8 +419,8 @@ const PrintButton = ({ lockedData, refreshLockedData }: PrintButtonProps) => {
                     </form>
                     {cryptedOrderId !== undefined && (
                         <div className='flex flex-row w-full justify-between'>
-                            <Button disabled={signIsLoading || embryonicIsLoading || confirmOrderLoading} variant={"destructive"} onClick={() => { setCryptedOrderId(undefined) }}>Cancel</Button>
-                            <Button disabled={signIsLoading || embryonicIsLoading || confirmOrderLoading} onClick={() => { confirmOrderWrite() }}>Confirm</Button>
+                            <Button disabled={signIsLoading || embryonicIsLoading || confirmOrderLoading || txReceiptIsLoading} variant={"destructive"} onClick={() => { setCryptedOrderId(undefined) }}>Cancel</Button>
+                            <Button disabled={signIsLoading || embryonicIsLoading || confirmOrderLoading || txReceiptIsLoading} onClick={() => { confirmOrderWrite() }}>Confirm</Button>
                         </div>
                     )}
                 </DialogContent>

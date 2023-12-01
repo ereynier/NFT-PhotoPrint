@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button'
-import React from 'react'
+import React, { useEffect } from 'react'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 
 import {
@@ -8,7 +8,7 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { useContractWrite } from 'wagmi'
+import { useContractWrite, useWaitForTransaction } from 'wagmi'
 import { chain } from '@/utils/chains'
 
 const IMAGE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_IMAGE_MANAGER_ADDRESS as `0x${string}`
@@ -35,6 +35,11 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
         address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI as any,
         functionName: 'unlockImage',
+        chainId: chain.id
+    })
+
+    const { data: txReceiptUnlock, isLoading: txReceiptIsLoadingUnlock, refetch: txReceiptRefetchUnlock } = useWaitForTransaction({
+        hash: unlockImageData?.hash,
         chainId: chain.id,
         onSuccess: () => {
             if (refreshImages) {
@@ -44,25 +49,32 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
                 refreshLockedData()
             }
         }
-    })
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
+
 
     const { data: clearOrderIdData, isLoading: clearOrderIdIsLoading, write: clearOrderIdWrite } = useContractWrite({
         address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI as any,
         functionName: 'clearOrderId',
+        chainId: chain.id
+    })
+
+    const { data: txReceiptClear, isLoading: txReceiptIsLoadingClear, refetch: txReceiptRefetchClear } = useWaitForTransaction({
+        hash: clearOrderIdData?.hash,
         chainId: chain.id,
         onSuccess: () => {
             if (refreshLockedData) {
                 refreshLockedData()
             }
         }
-    })
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
+
 
     const isDisabled = () => {
         if (Number(lockedData.timestampLock) + Number(LOCKING_PERIOD) > Date.now() / 1000) {
             return true
         }
-        if (unlockImageIsLoading) {
+        if (unlockImageIsLoading || txReceiptIsLoadingUnlock || clearOrderIdIsLoading || txReceiptIsLoadingClear) {
             return true
         }
         if (lockedData.printed) {
@@ -93,6 +105,15 @@ const UnlockButton = ({ refreshImages, lockedData, refreshLockedData }: Props) =
         console.log('clear')
         clearOrderIdWrite()
     }
+
+    useEffect(() => {
+        if (unlockImageData?.hash) {
+            txReceiptRefetchUnlock({ throwOnError: true, cancelRefetch: true })
+        }
+        if (clearOrderIdData?.hash) {
+            txReceiptRefetchClear({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [unlockImageData, clearOrderIdData])
 
     return (
         <div className='flex w-full justify-end items-end'>

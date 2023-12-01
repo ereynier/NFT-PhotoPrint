@@ -1,6 +1,6 @@
 import { chain } from '@/utils/chains'
 import React, { useEffect, useState } from 'react'
-import { useAccount, useContractRead, useContractWrite } from 'wagmi'
+import { useAccount, useContractRead } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 
 

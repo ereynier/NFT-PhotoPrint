@@ -227,6 +227,7 @@ export async function POST(req: Request): Promise<NextResponse> {
         args: [lockedData.imageAddress],
     })
 
+    console.log("productiId", productId)
     //get printOptionId
     const printOptionId = await fetch(`${CREATIVEHUB_BASEURL}/api/v1/products/${Number(productId)}`, { // test 35846
         method: 'GET',

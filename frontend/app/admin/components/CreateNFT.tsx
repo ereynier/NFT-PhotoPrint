@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import React, { useEffect } from 'react'
 import { parseEther } from 'viem'
-import { useContractWrite } from 'wagmi'
+import { useContractWrite, useWaitForTransaction } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import { useToast } from "@/components/ui/use-toast"
@@ -59,6 +59,11 @@ const CreateNFT = () => {
         abi: ImageManagerABI,
         functionName: 'createImage',
         args: [title, symbol, supply, uri, price, printProductId],
+        chainId: chain.id
+    })
+
+    const { data: txReceipt, isLoading: txReceiptIsLoading, refetch: txReceiptRefetch } = useWaitForTransaction({
+        hash: createImageData?.hash,
         chainId: chain.id,
         onSuccess: () => {
             toast({
@@ -70,7 +75,7 @@ const CreateNFT = () => {
             audio.play();
             clearForm();
         }
-    })
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -84,12 +89,18 @@ const CreateNFT = () => {
         createImageWrite()
     }
 
+    useEffect(() => {
+        if (createImageData?.hash) {
+            txReceiptRefetch({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [createImageData])
+
     const isDisabled = () => {
-        return !title || !symbol || !supply || !price || !uri || !printProductId || createImageIsLoading
+        return !title || !symbol || !supply || !price || !uri || !printProductId || createImageIsLoading || txReceiptIsLoading
     }
 
     const buttonDisplay = () => {
-        if (createImageIsLoading) {
+        if (createImageIsLoading || txReceiptIsLoading) {
             return 'Creating...'
         } else {
             return 'Create'

@@ -38,16 +38,18 @@ const ConnectButton = () => {
     return (
         <>
             {isConnected && (currentChain?.id === chain.id ? (
-                <div className='flex flex-row gap-2'>
-                    <p title={`${address}`} className={`break-all text-black font-medium text-lg cursor-default`}>{`${address?.slice(0, 5)}...${address?.slice(-4)}`}</p>
+                <div className='flex flex-col gap-0 items-center'>
                     <Popover open={copiedStatus} onOpenChange={() => copiedPopoverChanged()}>
                         <PopoverTrigger asChild>
-                            <button onClick={() => onClickCopy()} title='Click to copy' className='hover:bg-input rounded-md flex items-center justify-center p-1'>
-                                <Image src="/copy.svg" alt="Copy" width={20} height={20} />
+                            <button onClick={() => onClickCopy()} title='Click to copy' className='hover:bg-input rounded-md flex items-center justify-center px-1'>
+                                <p title={`${address}`} className={`break-all text-black font-medium text-lg cursor-pointer`}>{`${address?.slice(0, 5)}...${address?.slice(-4)}`}</p>
                             </button>
                         </PopoverTrigger>
                         <PopoverContent className='w-fit p-1'>Copied</PopoverContent>
                     </Popover>
+                    {currentChain?.id === 80001 && (
+                        <p className='break-words text-gray-500 text-sm cursor-default'>Testnet</p>
+                    )}
                 </div>
             ) : (
                 <div className='flex flex-row gap-2'>

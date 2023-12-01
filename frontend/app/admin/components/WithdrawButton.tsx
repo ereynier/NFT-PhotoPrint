@@ -1,6 +1,6 @@
 "use client"
 import React, { useEffect } from 'react'
-import { erc20ABI, useAccount, useContractRead, useContractWrite } from 'wagmi'
+import { erc20ABI, useAccount, useContractRead, useContractWrite, useWaitForTransaction } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
 import { useToast } from "@/components/ui/use-toast"
@@ -20,11 +20,23 @@ const WithdrawButton = ({ address, symbol, userAddress }: Props) => {
     const [balance, setBalance] = React.useState(0)
     const { toast } = useToast()
 
-    const { isLoading, write } = useContractWrite({
+    const { data, isLoading, write } = useContractWrite({
         address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'withdrawToken',
         args: [address, userAddress],
+        chainId: chain.id,
+        onError: () => {
+            toast({
+                title: 'Error',
+                description: 'Error',
+                variant: 'destructive'
+            })
+        }
+    })
+
+    const { data: txReceipt, isLoading: txReceiptIsLoading, refetch: txReceiptRefetch } = useWaitForTransaction({
+        hash: data?.hash,
         chainId: chain.id,
         onSuccess: () => {
             toast({
@@ -43,7 +55,8 @@ const WithdrawButton = ({ address, symbol, userAddress }: Props) => {
                 variant: 'destructive'
             })
         }
-    })
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
+
 
     const { data: balanceData, isLoading: balanceIsLoading, refetch } = useContractRead({
         address: address,
@@ -57,12 +70,15 @@ const WithdrawButton = ({ address, symbol, userAddress }: Props) => {
         if (address && balanceData != undefined && balanceIsLoading == false) {
             setBalance(Number(balanceData))
         }
-    }, [balanceData, address])
+        if (data?.hash) {
+            txReceiptRefetch({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [balanceData, address, data])
 
     return (
         <div className='flex flex-row gap-2 items-center'>
             <p>{`Balance: ${formatEther(BigInt(balance))}`}</p>
-            <Button disabled={isLoading || !isAddress(userAddress) || balance == 0} onClick={() => { write() }} className='text-center'>{`Withdraw`}</Button>
+            <Button disabled={isLoading || !isAddress(userAddress) || balance == 0 || txReceiptIsLoading} onClick={() => { write() }} className='text-center'>{`Withdraw`}</Button>
         </div>
     )
 }

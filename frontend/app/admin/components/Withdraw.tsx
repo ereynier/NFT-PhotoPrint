@@ -1,10 +1,8 @@
 "use client"
 import React, { useEffect } from 'react'
-import { useContractRead, useContractWrite } from 'wagmi'
+import { useContractRead } from 'wagmi'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
-import { useToast } from "@/components/ui/use-toast"
-import { Button } from '@/components/ui/button'
 import getTokens from '@/app/utils/getTokens'
 import Image from 'next/image'
 import WithdrawButton from './WithdrawButton'

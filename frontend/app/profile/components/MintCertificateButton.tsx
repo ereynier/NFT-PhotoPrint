@@ -1,9 +1,9 @@
 import { Button } from '@/components/ui/button'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { zeroAddress } from 'viem'
 import ImageManagerABI from "@/utils/abi/ImageManager.abi.json"
 import { chain } from '@/utils/chains'
-import { useContractWrite } from 'wagmi'
+import { useContractWrite, useWaitForTransaction } from 'wagmi'
 import { useToast } from "@/components/ui/use-toast"
 
 interface LockedData {
@@ -33,8 +33,13 @@ const MintCertificateButton = ({ refreshImages, refreshCertificates, refreshLock
         abi: ImageManagerABI as any,
         functionName: 'mintCertificate',
         chainId: chain.id,
-        args: [],
-        onSuccess: (data) => {
+        args: []
+    })
+
+    const { data: txReceipt, isLoading: txReceiptIsLoading, refetch: txReceiptRefetch } = useWaitForTransaction({
+        hash: mintCertificateData?.hash,
+        chainId: chain.id,
+        onSuccess: () => {
             toast({
                 title: "Mint successfull",
                 description: "Your certificate has been minted",
@@ -48,23 +53,32 @@ const MintCertificateButton = ({ refreshImages, refreshCertificates, refreshLock
         },
         onError: (err) => {
             console.log(err)
-            // toast({
-            //     title: "Mint failed",
-            //     description: "An error occured, please try again",
-            //     variant: "destructive"
-            // })
+            toast({
+                title: "Mint failed",
+                description: "An error occured, please try again",
+                variant: "destructive"
+            })
         }
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
 
-    })
 
     const handleMintCertificate = async () => {
         mintCertificateWrite()
     }
 
+    const isDisabled = () => {
+        return (lockedData.imageAddress == zeroAddress || lockedData.cryptedOrderId == "" || !lockedData.printed || mintCertificateLoading || txReceiptIsLoading)
+    }
+    
+    useEffect(() => {
+        if (mintCertificateData?.hash) {
+            txReceiptRefetch({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [mintCertificateData])
 
     return (
         <div className='flex w-full justify-start items-start'>
-            <Button disabled={lockedData.imageAddress == zeroAddress || lockedData.cryptedOrderId == "" || !lockedData.printed || mintCertificateLoading} className='w-full rounded-t-none' onClick={() => handleMintCertificate()}>Mint Certificate</Button>
+            <Button disabled={isDisabled()} className='w-full rounded-t-none' onClick={() => handleMintCertificate()}>Mint Certificate</Button>
         </div>
     )
 }

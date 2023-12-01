@@ -15,7 +15,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { Button } from '@/components/ui/button'
-import { useAccount, useContractEvent, useContractRead, useContractWrite, usePrepareContractWrite } from 'wagmi'
+import { useAccount, useContractEvent, useContractRead, useContractWrite, usePrepareContractWrite, useWaitForTransaction } from 'wagmi'
 import { chain } from '@/utils/chains'
 import { getImageLockedByUser } from './getNFTsByUser'
 import { zeroAddress } from 'viem'
@@ -83,17 +83,24 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         chainId: chain.id
     })
 
-    const { isLoading: approveIsLoading, write: approveWrite } = useContractWrite({
+    const { data: approveData, isLoading: approveIsLoading, write: approveWrite } = useContractWrite({
         ...approveConfig,
         onSuccess(data) {
             console.log(data)
-            refetchApproved({ throwOnError: true, cancelRefetch: true })
         },
     })
 
+    const { data: txReceiptApprove, isLoading: txReceiptIsLoadingApprove, refetch: txReceiptRefetchApprove } = useWaitForTransaction({
+        hash: approveData?.hash,
+        chainId: chain.id,
+        onSuccess: () => {
+            refetchApproved({ throwOnError: true, cancelRefetch: true })
+        }
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
+
 
     // LOCK IMAGE
-    const { isLoading: lockIsLoading, write: lockWrite } = useContractWrite({
+    const { data: lockData, isLoading: lockIsLoading, write: lockWrite } = useContractWrite({
         address: IMAGE_MANAGER_ADDRESS,
         abi: ImageManagerABI,
         functionName: 'lockImage',
@@ -101,12 +108,20 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         chainId: chain.id,
         onSuccess(data) {
             console.log(data)
+        },
+    })
+
+    const { data: txReceiptLock, isLoading: txReceiptIsLoadingLock, refetch: txReceiptRefetchLock } = useWaitForTransaction({
+        hash: lockData?.hash,
+        chainId: chain.id,
+        onSuccess: () => {
             if (refreshImages) {
                 refreshImages()
             }
             setOpen(false)
-        },
-    })
+        }
+    }) as { data: any, isLoading: boolean, refetch: (options: { throwOnError: boolean, cancelRefetch: boolean }) => Promise<any> }
+
 
     const handleLock = () => {
         if (!allowed) {
@@ -133,7 +148,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         abi: PrinterABI,
         eventName: 'ImageUnlocked',
         listener(log: any) {
-            if (log[0]["args"]["user"] == address) { 
+            if (log[0]["args"]["user"] == address) {
                 getNFTLocked()
             }
         },
@@ -144,7 +159,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         abi: PrinterABI,
         eventName: 'CertificateMinted',
         listener(log: any) {
-            if (log[0]["args"]["user"] == address) { 
+            if (log[0]["args"]["user"] == address) {
                 getNFTLocked()
             }
         },
@@ -160,7 +175,13 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         if (isConnected && printerAddress) {
             getNFTLocked()
         }
-    }, [approvedData, printerAddressData, printerAddress, isConnected])
+        if (approveData?.hash) {
+            txReceiptRefetchApprove({ throwOnError: true, cancelRefetch: true })
+        }
+        if (lockData?.hash) {
+            txReceiptRefetchLock({ throwOnError: true, cancelRefetch: true })
+        }
+    }, [approvedData, printerAddressData, printerAddress, isConnected, approveData, lockData])
 
     const continueDisplay = () => {
         if (approvedStatus == "success" && printerAddressStatus == "success") {
@@ -174,6 +195,13 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
         } else {
             return "Loading..."
         }
+    }
+
+    const isDisabled = () => {
+        if (approvedStatus != "success" || printerAddressStatus != "success" || lockIsLoading || approveIsLoading || txReceiptIsLoadingApprove || txReceiptIsLoadingLock) {
+            return true
+        }
+        return false
     }
 
     return (
@@ -194,7 +222,7 @@ const LockDialog = ({ imageData: { imageAddress, imageId }, refreshImages }: Pro
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                     <AlertDialogCancel onClick={() => setOpen(false)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction disabled={approvedStatus != "success" || printerAddressStatus != "success" || lockIsLoading || approveIsLoading} onClick={handleLock}>{continueDisplay()}</AlertDialogAction>
+                    <AlertDialogAction disabled={isDisabled()} onClick={handleLock}>{continueDisplay()}</AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
