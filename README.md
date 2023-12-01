@@ -41,7 +41,7 @@
     <a href="https://github.com/ereynier/NFT-PhotoPrint"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://nft-printer.ereynier.me">View Demo</a>
+    <a href="https://nft-prints.ereynier.me">View Demo</a>
     ·
     <a href="https://github.com/ereynier/NFT-PhotoPrint/issues">Report Bug</a>
     ·
