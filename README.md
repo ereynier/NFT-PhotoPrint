@@ -29,7 +29,7 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <a href="https://github.com/ereynier/NFT-PhotoPrint">
+  <a title="AI generated" href="https://github.com/ereynier/NFT-PhotoPrint">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
