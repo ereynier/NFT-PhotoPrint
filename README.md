@@ -180,6 +180,7 @@ This is an example of how to list things you need to use the software and how to
 ## Usage
 
 You can find a detailed arcticle about the smart contract on [medium](https://ereynier.medium.com/from-screen-to-walls-unleashing-the-true-potential-of-nfts-9c43b25b57fd)
+
 You can use the testnet website at [https://nft-prints.ereynier.me](https://nft-prints.ereynier.me)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
