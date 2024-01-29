@@ -15,13 +15,13 @@ const NFTTechnologie = () => {
                 <h2 className="text-4xl font-bold mb-8">
                     Unleashing the Power of NFT Technology
                 </h2>
-                <p className="text-lg mb-8 text-gray-800">
+                <p className="text-lg mb-8 text-gray-800 text-left">
                     At the core of this artistic revolution is NFT technology. Non-Fungible Tokens provide a secure and verifiable way to represent ownership of digital assets. Each NFT in my limited collection comes with a unique identifier, making it one-of-a-kind and eternally recorded on the blockchain, ensuring authenticity and scarcity.
                 </p>
-                <p className="text-lg mb-8 text-gray-800">
+                <p className="text-lg mb-8 text-gray-800 text-left">
                     By embracing blockchain technology, I aim to redefine the relationship between the creator and the collector. Smart contracts on the Ethereum network govern the issuance and transfer of these limited NFTs, creating a transparent and trustless environment.
                 </p>
-                <p className="text-lg mb-8 text-gray-800">
+                <p className="text-lg mb-8 text-gray-800 text-left">
                     Acquiring an NFT from this collection means securing not just a digital image but a piece of art with a distinct identity, a unique representation of creativity etched into the digital realm.
                 </p>
             </div>

@@ -10,13 +10,13 @@ const PrintDetails = () => {
                     <h2 className="text-4xl font-bold mb-8">
                         Bringing Digital to Life: Fine Art Prints
                     </h2>
-                    <p className="text-lg mb-8 text-gray-800">
+                    <p className="text-lg mb-8 text-gray-800 text-left">
                         Your journey with my NFTs doesn't end in the digital realm. Each collector has the opportunity to claim a physical manifestation of their chosen piece. The magic happens in London, where a state-of-the-art printer meticulously transforms the digital into tangible art.
                     </p>
-                    <p className="text-lg mb-8 text-gray-800">
+                    <p className="text-lg mb-8 text-gray-800 text-left">
                         Our choice of "C-Type" paper ensures museum-quality prints. This archival printing process guarantees not only the longevity of your art piece but also the preservation of its vivid colors and intricate details. The synergy between digital art and traditional printing brings a new dimension to your collection.
                     </p>
-                    <p className="text-lg mb-8 text-gray-800">
+                    <p className="text-lg mb-8 text-gray-800 text-left">
                         Your print, like the NFT it mirrors, is a limited edition, stamped with authenticity. The journey from pixel to print is a celebration of artistry, craftsmanship, and the harmonious blend of the digital and physical worlds.
                     </p>
                 </div>
